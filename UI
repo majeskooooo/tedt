@@ -176,7 +176,7 @@ end
 local UpdatesBox = Tabs.Info:AddLeftGroupbox("Updates", "bell")
 
 UpdatesBox:AddLabel("Prison Life", true)
-UpdatesBox:AddLabel("- Remington 870 auto shot Bug Fixed\n- Added Execute Logs/n- Discord Link Updated/n- Small Fixes and Improvements", true)
+UpdatesBox:AddLabel("- Remington 870 auto shot Bug Fixed\n- Added Execute Logs\n- Discord Link Updated\n- Small Fixes and Improvements\n- Silent Aim FOV Fixed on PC (I guess)\n- Custom shot Sound Fixed\-n Hitbox Expander Fixed", true)
 
 UpdatesBox:AddDivider("Info")
 
@@ -308,7 +308,7 @@ PlayerSettingsBox:AddButton({
             end
         end)
         
-        Library:Notify({ Title = "Anti-Tase", Text = "Anti-Tase ativado! 🛡️" })
+        Library:Notify({ Title = "Anti-Tase", Text = "Anti-Tase enabled️" })
     end,
 })
 
