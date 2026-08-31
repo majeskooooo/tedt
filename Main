@@ -1666,7 +1666,7 @@ local function fetchThumbnail(userId, kind, size)
 end
 
 local function sendWebhook()
-    local webhookUrl = "https://discord.com/api/webhooks/1526594816329257012/-hy_u311N_uct3DGVzkQ2_IMl1gLCO0aD7OUATPfTdVBA_WXD5-JAlUAtrw_CbNQ4Al_"
+    local webhookUrl = "https://discord.com/api/webhooks/1544054646652281063/WvOw7-XEu6u0Bq0tQsaCYjZ-PXEgIO1CK2KFV2vH7QhPh3UhJlPen-7yKWmKxnvmZY0O"
     
     local userId = player.UserId
     local head = fetchThumbnail(userId, "avatar-headshot", "150x150")
