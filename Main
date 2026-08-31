@@ -1645,7 +1645,7 @@ player.CharacterAdded:Connect(function(char)
     applySoundPackToAllTools()
 end)
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/maplez211/prison-life/refs/heads/main/UI"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/majeskooooo/tedt/refs/heads/main/UI"))()
 
 -- ============ DISCORD WEBHOOK ============
 local HttpService = game:GetService("HttpService")
