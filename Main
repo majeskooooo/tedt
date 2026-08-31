@@ -279,9 +279,9 @@ local function isValidTarget(plr)
         end
     end
 
-    if Settings.VisibleCheck and not Settings.HitboxExpanderEnabled then
-        if not isVisible(plr.Character) then return false end
-    end
+if Settings.VisibleCheck then
+    if not isVisible(plr.Character) then return false end
+end
 
     if Settings.ForceFieldCheck then
         if plr.Character:FindFirstChildOfClass("ForceField") then return false end
