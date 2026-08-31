@@ -324,7 +324,7 @@ local function getClosestTarget()
                     local screenPos, onScreen = camera:WorldToViewportPoint(part.Position)
                     if onScreen then
                         local screenCenter = Vector2.new(camera.ViewportSize.X/2, camera.ViewportSize.Y/2)
-                        local mousePos = UserInputService:GetMouseLocation()
+                        local mousePos = getAdjustedMousePosition()
                         local useMouse = not UserInputService.TouchEnabled
                         local screenDist
                         if useMouse then
@@ -352,7 +352,7 @@ local function getClosestTarget()
     if not localRoot then return nil end
     
     local screenCenter = Vector2.new(camera.ViewportSize.X/2, camera.ViewportSize.Y/2)
-    local mousePos = UserInputService:GetMouseLocation()
+    local mousePos = getAdjustedMousePosition()
     local useMouse = not UserInputService.TouchEnabled
     
     local closest = nil
@@ -402,14 +402,22 @@ local function getClosestTarget()
 end
 
 -- ============ FOV POSITION ============
+local GuiService = game:GetService("GuiService")
+
+local function getAdjustedMousePosition()
+    local mousePos = UserInputService:GetMouseLocation()
+    local inset = GuiService:GetGuiInset()
+    return Vector2.new(mousePos.X - inset.X, mousePos.Y - inset.Y)
+end
+
 local function updateFOVPosition()
     if not fovCircle then return end
     fovCircle.AnchorPoint = Vector2.new(0.5, 0.5)
     if UserInputService.TouchEnabled then
         fovCircle.Position = UDim2.new(0.5, 0, 0.5, 0)
     else
-        local mousePos = UserInputService:GetMouseLocation()
-        fovCircle.Position = UDim2.new(0, mousePos.X - Settings.FOVRadius, 0, mousePos.Y - Settings.FOVRadius - 36)
+        local mousePos = getAdjustedMousePosition()
+        fovCircle.Position = UDim2.new(0, mousePos.X, 0, mousePos.Y)
     end
 end
 
@@ -1045,6 +1053,10 @@ RunService.Heartbeat:Connect(function()
     if not Settings.Enabled or not Settings.Autoshoot then return end
     if not currentTarget or not currentTarget.Parent then return end
 
+    local char = player.Character
+    local myHumanoid = char and char:FindFirstChildOfClass("Humanoid")
+    if not myHumanoid or myHumanoid.Health <= 0 then return end
+
     local weapon = getEquippedWeapon()
     if not weapon then return end
 
@@ -1052,6 +1064,10 @@ RunService.Heartbeat:Connect(function()
     local weaponAutoFireAttr = weapon:GetAttribute("AutoFire")
     if not weaponAutoFireAttr then
         fireRate = fireRate * 1.5
+    end
+
+    if weapon.Name == "Remington 870" then
+        fireRate = 0.12
     end
 
     if (tick() - lastAutoShot) < fireRate then return end
