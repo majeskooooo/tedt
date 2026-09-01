@@ -48,6 +48,8 @@ getgenv().SilentAimSettings = {
     AutoFire = false,
     FastFirerateEnabled = false,
     FireRateValue = 0.01,
+    KillEffectEnabled = false,
+    KillEffectColor = Color3.fromRGB(255, 0, 0),
     HitboxExpanderEnabled = false,
     HitboxTeamCheck = true,
     HitboxSize = 1,
@@ -1467,6 +1469,119 @@ getgenv().SetWeaponMaterial = function(v)
     if SkinSettings.Enabled then
         applyWeaponSkinToAllTools()
     end
+end
+
+-- ============ KILL EFFECT FRAME ============
+local TweenService = game:GetService("TweenService")
+
+local KillEffectGui = Instance.new("ScreenGui")
+KillEffectGui.Name = "KillEffectGui"
+KillEffectGui.ResetOnSpawn = false
+KillEffectGui.IgnoreGuiInset = true
+KillEffectGui.DisplayOrder = 999
+KillEffectGui.Parent = player:WaitForChild("PlayerGui")
+
+local KillEffectFrame = Instance.new("Frame")
+KillEffectFrame.Name = "KillEffectFrame"
+KillEffectFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+KillEffectFrame.Position = UDim2.fromScale(0.5, 0.5)
+KillEffectFrame.Size = UDim2.fromScale(1, 1)
+KillEffectFrame.BackgroundColor3 = Settings.KillEffectColor
+KillEffectFrame.BackgroundTransparency = 1
+KillEffectFrame.BorderSizePixel = 0
+KillEffectFrame.ZIndex = 999
+KillEffectFrame.Parent = KillEffectGui
+
+local killEffectSizeConnection
+local function autoSizeKillEffectFrame()
+    local viewport = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize
+    if viewport then
+        KillEffectFrame.Size = UDim2.fromOffset(viewport.X, viewport.Y)
+    end
+end
+autoSizeKillEffectFrame()
+
+if workspace.CurrentCamera then
+    killEffectSizeConnection = workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(autoSizeKillEffectFrame)
+end
+
+workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+    if killEffectSizeConnection then
+        killEffectSizeConnection:Disconnect()
+    end
+    if workspace.CurrentCamera then
+        killEffectSizeConnection = workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(autoSizeKillEffectFrame)
+        autoSizeKillEffectFrame()
+    end
+end)
+
+local killEffectPlaying = false
+
+function playKillEffect()
+    if not Settings.KillEffectEnabled then return end
+    if killEffectPlaying then return end
+    killEffectPlaying = true
+
+    KillEffectFrame.BackgroundColor3 = Settings.KillEffectColor
+    KillEffectFrame.BackgroundTransparency = 1
+
+    local fadeIn = TweenService:Create(
+        KillEffectFrame,
+        TweenInfo.new(0.125, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
+        { BackgroundTransparency = 0.4 }
+    )
+
+    local fadeOut = TweenService:Create(
+        KillEffectFrame,
+        TweenInfo.new(0.125, Enum.EasingStyle.Sine, Enum.EasingDirection.In),
+        { BackgroundTransparency = 1 }
+    )
+
+    fadeIn:Play()
+    fadeIn.Completed:Wait()
+    fadeOut:Play()
+    fadeOut.Completed:Wait()
+
+    killEffectPlaying = false
+end
+
+getgenv().SetKillEffectEnabled = function(v)
+    Settings.KillEffectEnabled = v == true
+end
+
+getgenv().SetKillEffectColor = function(color)
+    Settings.KillEffectColor = color
+end
+
+-- ============ KILL LOGS ============
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local function parseKillFeedEntry(entryName)
+    local killerDisplay, killerUser, victimDisplay, weapon =
+        entryName:match("^(.-)%s*%(@(.-)%)%s*killed%s+(.-)%s+with%s+(.+)$")
+    return killerDisplay, killerUser, victimDisplay, weapon
+end
+
+local function onKillFeedEntry(entry)
+    if not entry:IsA("IntValue") then return end
+
+    local killerDisplay, killerUser, victimDisplay, weapon = parseKillFeedEntry(entry.Name)
+    if not killerDisplay then return end -- não bateu com o formato esperado, ignora
+
+    Library:Notify({
+        Title = "Kill Feed",
+        Description = killerDisplay .. " killed " .. victimDisplay .. " with " .. weapon,
+        Time = 4,
+    })
+
+    if killerUser == player.Name then
+        task.spawn(playKillEffect)
+    end
+end
+
+local KillFeedFolder = ReplicatedStorage:WaitForChild("KillFeed", 10)
+if KillFeedFolder then
+    KillFeedFolder.ChildAdded:Connect(onKillFeedEntry)
 end
 
 -- ============ ESP ============
