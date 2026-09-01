@@ -1021,6 +1021,42 @@ SoundTab:AddDropdown("WeaponSoundPack", {
     end,
 })
 
+NotifyTab:AddLabel("Effects")
+
+NotifyTab:AddCheckbox("ColorScreenKillEffect", {
+    Text = "Color Screen Kill Effect",
+    Default = false,
+    Callback = function(v)
+        getgenv().SetColorScreenKillEffectEnabled(v)
+    end,
+}):AddColorPicker("ColorScreenKillEffectColor", {
+    Default = Color3.fromRGB(255, 0, 0),
+    Title = "Kill Effect Color",
+    Text = "Kill Effect Color",
+    Tooltip = "Sets the color of the screen flash on kill",
+    Callback = function(Value)
+        getgenv().SetColorScreenKillEffectColor(Value)
+    end,
+})
+
+NotifyTab:AddDivider("Logs")
+
+NotifyTab:AddCheckbox("KillLogs", {
+    Text = "Kill Logs",
+    Default = false,
+    Callback = function(v)
+        getgenv().SetKillLogsEnabled(v)
+    end,
+})
+
+NotifyTab:AddCheckbox("HitLogs", {
+    Text = "Hit Logs",
+    Default = false,
+    Callback = function(v)
+        getgenv().SetHitLogsEnabled(v)
+    end,
+})
+
 -- ============ VISUALS TAB ============
 local VisualsLeftBox = Tabs.Visuals:AddLeftGroupbox("Highlight ESP", "eye")
 
