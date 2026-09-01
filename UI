@@ -1027,7 +1027,7 @@ NotifyTab:AddCheckbox("ColorScreenKillEffect", {
     Text = "Color Screen Kill Effect",
     Default = false,
     Callback = function(v)
-        getgenv().SetColorScreenKillEffectEnabled(v)
+        getgenv().SetKillEffectEnabled(v)
     end,
 }):AddColorPicker("ColorScreenKillEffectColor", {
     Default = Color3.fromRGB(255, 0, 0),
@@ -1035,7 +1035,7 @@ NotifyTab:AddCheckbox("ColorScreenKillEffect", {
     Text = "Kill Effect Color",
     Tooltip = "Sets the color of the screen flash on kill",
     Callback = function(Value)
-        getgenv().SetColorScreenKillEffectColor(Value)
+        getgenv().SetKillEffectColor(Value)
     end,
 })
 
