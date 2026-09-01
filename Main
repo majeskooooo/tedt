@@ -232,26 +232,17 @@ end
 -- ============ MAIN FUNCTIONS ============
 local function isVisible(targetCharacter)
     if not targetCharacter then return false end
-    local targetHRP = targetCharacter:FindFirstChild("HumanoidRootPart")
-    if not targetHRP then return false end
-
-    local localChar = player.Character
-    local localHRP = localChar and localChar:FindFirstChild("HumanoidRootPart")
-    if not localHRP then return false end
+    local hrp = targetCharacter:FindFirstChild("HumanoidRootPart")
+    if not hrp then return false end
+    local origin = camera.CFrame.Position
+    local direction = hrp.Position - origin
 
     local params = RaycastParams.new()
     params.FilterType = Enum.RaycastFilterType.Blacklist
-    params.FilterDescendantsInstances = {localChar, targetCharacter}
+    params.FilterDescendantsInstances = {player.Character, targetCharacter}
 
-    local origin = localHRP.Position
-    local direction = targetHRP.Position - origin
-    local result = workspace:Raycast(origin, direction, params)
-
-    if result and result.Instance.Transparency < 0.9 then
-        return false
-    end
-
-    return true
+    local result = Workspace:Raycast(origin, direction, params)
+    return result == nil
 end
 
 local function isValidTarget(plr)
