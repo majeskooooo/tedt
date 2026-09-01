@@ -239,28 +239,36 @@ local function isVisible(targetCharacter)
     local localHRP = localChar and localChar:FindFirstChild("HumanoidRootPart")
     if not localHRP then return false end
 
-    local origin = targetHRP.Position
-    local direction = localHRP.Position - origin
-
     local params = RaycastParams.new()
     params.FilterType = Enum.RaycastFilterType.Blacklist
     params.FilterDescendantsInstances = {player.Character, targetCharacter}
 
-    local result = workspace:Raycast(origin, direction, params)
-    return result == nil
-end
+    local cameraOrigin = camera.CFrame.Position
+    local cameraDirection = targetHRP.Position - cameraOrigin
+    local cameraResult = workspace:Raycast(cameraOrigin, cameraDirection, params)
 
-local function isValidTarget(plr)
-    if not plr or plr == player then return false end
-    if not plr.Character then return false end
-    
-    if Settings.IgnoreTargets and #Settings.IgnoreTargets > 0 then
-        for _, name in ipairs(Settings.IgnoreTargets) do
-            if plr.Name == name then
-                return false
-            end
+    if cameraResult and cameraResult.Instance then
+        local hitModel = cameraResult.Instance:FindFirstAncestorOfClass("Model")
+        local hitPlayer = hitModel and Players:GetPlayerFromCharacter(hitModel)
+        if hitPlayer and hitPlayer ~= player then
+            return false
         end
     end
+
+    local localOrigin = targetHRP.Position
+    local localDirection = localHRP.Position - localOrigin
+    local localResult = workspace:Raycast(localOrigin, localDirection, params)
+
+    if localResult and localResult.Instance then
+        local hitModel = localResult.Instance:FindFirstAncestorOfClass("Model")
+        local hitPlayer = hitModel and Players:GetPlayerFromCharacter(hitModel)
+        if hitPlayer and hitPlayer ~= player then
+            return false
+        end
+    end
+
+    return true
+end
     
     local hum = plr.Character:FindFirstChildOfClass("Humanoid")
     local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
