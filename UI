@@ -176,7 +176,7 @@ end
 local UpdatesBox = Tabs.Info:AddLeftGroupbox("Updates", "bell")
 
 UpdatesBox:AddLabel("Prison Life", true)
-UpdatesBox:AddLabel("- Remington 870 auto shot Bug Fixed\n- Added Execute Logs\n- Discord Link Updated\n- Small Fixes and Improvements\n- Silent Aim FOV Fixed on PC (I guess)\n- Custom shot Sound Fixed\n- Hitbox Expander Fixed\n- Now the Autoshot automatically Stops shooting when you die\n- Faster Gun Switch\n- Added Color Screen Kill Effect\n- Added Kill Logs\n- Added Hit Logs", true)
+UpdatesBox:AddLabel("- Remington 870 auto shot Bug Fixed\n- Added Execute Logs\n- Discord Link Updated\n- Small Fixes and Improvements\n- Silent Aim FOV Fixed on PC (I guess)\n- Custom shot Sound Fixed\n- Hitbox Expander Fixed\n- Now the Autoshot automatically Stops shooting when you die\n- Faster Gun Switch\n- Added Color Screen Kill Effect\n- Added Kill Logs\n- Added Hit Logs\n- Added Kill Sound\n- Added Hit Sound", true)
 
 UpdatesBox:AddDivider("Info")
 
@@ -1012,12 +1012,52 @@ local SoundTab = WeaponModsTabbox:AddTab(nil, "volume-2")
 local NotifyTab = WeaponModsTabbox:AddTab(nil, "bell")
 
 SoundTab:AddDropdown("WeaponSoundPack", {
-    Values = {"None", "Silenced Shot", "Bubble Shot", "Laser Shot", "Dart Gun", "Energy Shot", "Bell Ping", "Xbox Live Notification"},
+    Values = {"None", "Silenced Shot", "Bubble Shot", "Laser Shot", "Dart Gun", "Energy Shot", "Neverlose", "Xbox Live Notification"},
     Default = "None",
     Text = "Custom Shot Sound",
     Tooltip = "Applies a custom shoot sound to all supported weapons",
     Callback = function(Value)
         getgenv().SetWeaponSoundPack(Value)
+    end,
+})
+
+SoundTab:AddDivider()
+
+SoundTab:AddCheckbox("CustomKillSound", {
+    Text = "Custom Kill Sound",
+    Default = false,
+    Callback = function(v)
+        getgenv().SetCustomKillSoundEnabled(v)
+    end,
+})
+
+SoundTab:AddCheckbox("CustomHitSound", {
+    Text = "Custom Hit Sound",
+    Default = false,
+    Callback = function(v)
+        getgenv().SetCustomHitSoundEnabled(v)
+    end,
+})
+
+SoundTab:AddDivider()
+
+SoundTab:AddDropdown("KillSound", {
+    Values = {"Fahhh", "Epic Kill 1", "Epic Kill 2", "Laugh", "Cat Laughing Meme", "Goofy Laugh", "PVZ Laugh"},
+    Default = 1,
+    Text = "Kill Sound",
+    Tooltip = "Select a custom kill sound",
+    Callback = function(Value)
+        getgenv().SetKillSound(Value)
+    end,
+})
+
+SoundTab:AddDropdown("HitSound", {
+    Values = {"TF2 Hit", "Metal Bat Hit", "Pickaxe Hit", "Minecraft Hit 1", "MLG Hit", "Fahhh Hit"},
+    Default = 1,
+    Text = "Hit Sound",
+    Tooltip = "Select a custom hit sound",
+    Callback = function(Value)
+        getgenv().SetHitSound(Value)
     end,
 })
 
@@ -1030,7 +1070,7 @@ NotifyTab:AddCheckbox("ColorScreenKillEffect", {
         getgenv().SetKillEffectEnabled(v)
     end,
 }):AddColorPicker("ColorScreenKillEffectColor", {
-    Default = Color3.fromRGB(255, 0, 0),
+    Default = Color3.fromRGB(255, 255, 255),
     Title = "Kill Effect Color",
     Text = "Kill Effect Color",
     Tooltip = "Sets the color of the screen flash on kill",
