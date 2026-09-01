@@ -1565,8 +1565,17 @@ end
 local function onKillFeedEntry(entry)
     if not entry:IsA("IntValue") then return end
 
+    print("[KillFeed] Novo entry detectado:", entry.Name)
+
     local killerDisplay, killerUser, victimDisplay, weapon = parseKillFeedEntry(entry.Name)
-    if not killerDisplay then return end -- não bateu com o formato esperado, ignora
+    if not killerDisplay then
+        warn("[KillFeed] Não bateu com o pattern esperado:", entry.Name)
+        return
+    end
+
+    print(("[KillFeed] Parseado -> Killer: %s (@%s) | Vitima: %s | Arma: %s"):format(
+        killerDisplay, killerUser, victimDisplay, weapon
+    ))
 
     Library:Notify({
         Title = "Kill Feed",
@@ -1575,13 +1584,42 @@ local function onKillFeedEntry(entry)
     })
 
     if killerUser == player.Name then
+        print("[KillFeed] Foi você quem matou, tocando o efeito")
         task.spawn(playKillEffect)
     end
 end
 
-local KillFeedFolder = ReplicatedStorage:WaitForChild("KillFeed", 10)
+local function findKillFeedFolder()
+    local direct = ReplicatedStorage:FindFirstChild("KillFeed")
+    if direct then return direct end
+
+    local sharedModules = ReplicatedStorage:FindFirstChild("SharedModules")
+    if sharedModules then
+        local nested = sharedModules:FindFirstChild("KillFeed")
+        if nested then return nested end
+    end
+
+    return ReplicatedStorage:FindFirstChild("KillFeed", true)
+end
+
+local KillFeedFolder = findKillFeedFolder()
+
+if not KillFeedFolder then
+    local waited = 0
+    while not KillFeedFolder and waited < 10 do
+        task.wait(0.5)
+        waited += 0.5
+        KillFeedFolder = findKillFeedFolder()
+    end
+end
+
 if KillFeedFolder then
+    print("[KillFeed] Pasta encontrada em:", KillFeedFolder:GetFullName())
     KillFeedFolder.ChildAdded:Connect(onKillFeedEntry)
+
+    print("[KillFeed] Entries já existentes:", #KillFeedFolder:GetChildren())
+else
+    warn("[KillFeed] Não encontrei a pasta 'KillFeed' em nenhum lugar do ReplicatedStorage!")
 end
 
 -- ============ ESP ============
