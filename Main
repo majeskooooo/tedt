@@ -232,33 +232,46 @@ end
 -- ============ MAIN FUNCTIONS ============
 local function isVisible(targetCharacter)
     if not targetCharacter then return false end
+    
     local targetHRP = targetCharacter:FindFirstChild("HumanoidRootPart")
     if not targetHRP then return false end
 
     local localChar = player.Character
-    local localHead = localChar and localChar:FindFirstChild("Head")
-    if not localHead then return false end
+    if not localChar then return false end
+    
+    local localHRP = localChar:FindFirstChild("HumanoidRootPart")
+    if not localHRP then return false end
 
     local params = RaycastParams.new()
     params.FilterType = Enum.RaycastFilterType.Blacklist
-    params.FilterDescendantsInstances = {player.Character, targetCharacter}
+    params.FilterDescendantsInstances = {localChar, targetCharacter}
+    params.IgnoreWater = true
 
     local cameraOrigin = camera.CFrame.Position
-    local cameraDirection = targetHRP.Position - cameraOrigin
+    local cameraDirection = (targetHRP.Position - cameraOrigin).Unit * 1000 -- Ray com comprimento fixo
+    
     local cameraResult = workspace:Raycast(cameraOrigin, cameraDirection, params)
-
-    if cameraResult and cameraResult.Instance.Transparency < 0.9 then
-        return false
+    
+    if cameraResult then
+        local hitInstance = cameraResult.Instance
+        if hitInstance and hitInstance.Transparency < 0.5 then
+            return false 
+        end
     end
 
-    local localOrigin = localHead.Position
-    local localDirection = targetHRP.Position - localOrigin
-    local localResult = workspace:Raycast(localOrigin, localDirection, params)
-
-    if localResult and localResult.Instance.Transparency < 0.9 then
-        return false
+    local bodyOrigin = localHRP.Position
+    local bodyDirection = (targetHRP.Position - bodyOrigin).Unit * 1000
+    
+    local bodyResult = workspace:Raycast(bodyOrigin, bodyDirection, params)
+    
+    if bodyResult then
+        local hitInstance = bodyResult.Instance
+        if hitInstance and hitInstance.Transparency < 0.5 then
+            return false 
+        end
     end
 
+    -- Se passou nas duas verificações, está visível
     return true
 end
 
