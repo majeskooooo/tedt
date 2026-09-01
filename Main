@@ -236,8 +236,8 @@ local function isVisible(targetCharacter)
     if not targetHRP then return false end
 
     local localChar = player.Character
-    local localHRP = localChar and localChar:FindFirstChild("HumanoidRootPart")
-    if not localHRP then return false end
+    local localHead = localChar and localChar:FindFirstChild("Head")
+    if not localHead then return false end
 
     local params = RaycastParams.new()
     params.FilterType = Enum.RaycastFilterType.Blacklist
@@ -255,8 +255,9 @@ local function isVisible(targetCharacter)
         end
     end
 
-    local localDirection = localHRP.Position - targetHRP.Position
-    local localResult = workspace:Raycast(targetHRP.Position, localDirection, params)
+    local localOrigin = localHead.Position
+    local localDirection = targetHRP.Position - localOrigin
+    local localResult = workspace:Raycast(localOrigin, localDirection, params)
 
     if localResult then
         local hitModel = localResult.Instance:FindFirstAncestorOfClass("Model")
