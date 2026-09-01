@@ -232,10 +232,15 @@ end
 -- ============ MAIN FUNCTIONS ============
 local function isVisible(targetCharacter)
     if not targetCharacter then return false end
-    local hrp = targetCharacter:FindFirstChild("HumanoidRootPart")
-    if not hrp then return false end
-    local origin = camera.CFrame.Position
-    local direction = hrp.Position - origin
+    local targetHRP = targetCharacter:FindFirstChild("HumanoidRootPart")
+    if not targetHRP then return false end
+
+    local localChar = player.Character
+    local localHRP = localChar and localChar:FindFirstChild("HumanoidRootPart")
+    if not localHRP then return false end
+
+    local origin = targetHRP.Position
+    local direction = localHRP.Position - origin
 
     local params = RaycastParams.new()
     params.FilterType = Enum.RaycastFilterType.Blacklist
