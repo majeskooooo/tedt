@@ -1039,6 +1039,17 @@ NotifyTab:AddCheckbox("ColorScreenKillEffect", {
     end,
 })
 
+NotifyTab:AddSlider("ColorEffectFadeDuration", {
+    Text = "Color Effect Fade Duration",
+    Default = 0.25,
+    Min = 0.05,
+    Max = 1,
+    Rounding = 2,
+    Callback = function(Value)
+        getgenv().SetKillEffectFadeDuration(Value)
+    end,
+})
+
 NotifyTab:AddDivider("Logs")
 
 NotifyTab:AddCheckbox("KillLogs", {
