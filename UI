@@ -176,7 +176,7 @@ end
 local UpdatesBox = Tabs.Info:AddLeftGroupbox("Updates", "bell")
 
 UpdatesBox:AddLabel("Prison Life", true)
-UpdatesBox:AddLabel("- Remington 870 auto shot Bug Fixed\n- Added Execute Logs\n- Discord Link Updated\n- Small Fixes and Improvements\n- Silent Aim FOV Fixed on PC (I guess)\n- Custom shot Sound Fixed\n- Hitbox Expander Fixed\n- Now the Autoshot automatically Stops shooting when you die\n- Faster Gun Switch", true)
+UpdatesBox:AddLabel("- Remington 870 auto shot Bug Fixed\n- Added Execute Logs\n- Discord Link Updated\n- Small Fixes and Improvements\n- Silent Aim FOV Fixed on PC (I guess)\n- Custom shot Sound Fixed\n- Hitbox Expander Fixed\n- Now the Autoshot automatically Stops shooting when you die\n- Faster Gun Switch\n- Added Color Screen Kill Effect\n- Added Kill Logs\n- Added Hit Logs", true)
 
 UpdatesBox:AddDivider("Info")
 
@@ -1172,6 +1172,7 @@ ClampColorPickerToScreen("FogColor")
 ClampColorPickerToScreen("TracerColor")
 ClampColorPickerToScreen("BulletColor")
 ClampColorPickerToScreen("WeaponColor")
+ClampColorPickerToScreen("ColorScreenKillEffectColor")
 
 -- ============ TELEPORTS TAB ============
 local TeleportsBox = Tabs.Teleports:AddRightGroupbox("Teleports", "map-pin")
