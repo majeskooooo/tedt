@@ -50,6 +50,7 @@ getgenv().SilentAimSettings = {
     FireRateValue = 0.01,
     KillEffectEnabled = false,
     KillEffectColor = Color3.fromRGB(255, 0, 0),
+    KillLogsEnabled = false,
     HitboxExpanderEnabled = false,
     HitboxTeamCheck = true,
     HitboxSize = 1,
@@ -1553,6 +1554,10 @@ getgenv().SetKillEffectColor = function(color)
     Settings.KillEffectColor = color
 end
 
+getgenv().SetKillLogsEnabled = function(v)
+    Settings.KillLogsEnabled = v == true
+end
+
 -- ============ KILL LOGS ============
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -1568,11 +1573,13 @@ local function onKillFeedEntry(entry)
     local killerDisplay, killerUser, victimDisplay, weapon = parseKillFeedEntry(entry.Name)
     if not killerDisplay then return end
 
-    Library:Notify({
-        Title = "Kill Feed",
-        Description = killerDisplay .. " killed " .. victimDisplay .. " with " .. weapon,
-        Time = 4,
-    })
+    if Settings.KillLogsEnabled then
+        Library:Notify({
+            Title = "Kill Logs",
+            Description = killerDisplay .. " killed " .. victimDisplay .. " with " .. weapon,
+            Time = 4,
+        })
+    end
 
     if killerUser == player.Name then
         task.spawn(playKillEffect)
