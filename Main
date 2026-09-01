@@ -819,7 +819,7 @@ function setAntiTaseEnabled(enabled)
     end
 end
 
--- ============ GUN SWITCHER (FAST SWITCH) ============
+-- ============ GUN SWITCHER ============
 task.spawn(function()
     while true do
         task.wait(0.1)
