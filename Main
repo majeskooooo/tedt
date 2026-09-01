@@ -514,7 +514,6 @@ end
 local lastHitNotify = {}
 
 local function registerHit(result)
-    if not Settings.HitLogsEnabled then return end
     if not result then return end
 
     local hitPart
@@ -538,11 +537,15 @@ local function registerHit(result)
     end
     lastHitNotify[hitPlayer] = now
 
-    Library:Notify({
-        Title = "Hit Logs",
-        Description = "You hit " .. hitPlayer.Name,
-        Time = 3,
-    })
+    if Settings.HitLogsEnabled then
+        Library:Notify({
+            Title = "Hit Logs",
+            Description = "You hit " .. hitPlayer.Name,
+            Time = 3,
+        })
+    end
+
+    playHitSound()
 end
 
 local function isLocalPlayerShooting(Arguments, Method, Origin, OriginalDirection)
@@ -1635,6 +1638,7 @@ local function onKillFeedEntry(entry)
 
     if killerUser == player.Name then
         task.spawn(playKillEffect)
+        playKillSound()
     end
 end
 
@@ -1762,7 +1766,7 @@ local SoundPacks = {
     ["Laser Shot"] = { ShootSound = 109075387966089 },
     ["Dart Gun"] = { ShootSound = 5924183835 },
     ["Energy Shot"] = { ShootSound = 113363294416214 },
-    ["Bell Ping"] = { ShootSound = 135474771574127 },
+    ["Neverlose"] = { ShootSound = 82938206376993 },
     ["Xbox Live Notification"] = { ShootSound = 117934611310434 },
 }
 
@@ -1841,6 +1845,87 @@ player.CharacterAdded:Connect(function(char)
     task.wait(0.5)
     applySoundPackToAllTools()
 end)
+
+-- ============ HIT & KILL SOUNDS ============
+local HitSounds = {
+    ["TF2 Hit"] = 137392628136734,
+    ["Metal Bat Hit"] = 114303603199822,
+    ["Pickaxe Hit"] = 9120146349,
+    ["Minecraft Hit 1"] = 135478009117226,
+    ["MLG Hit"] = 109817519733426,
+    ["Fahhh Hit"] = 139259088251978,
+}
+
+local KillSounds = {
+    ["Fahhh"] = 93458245768554,
+    ["Epic Kill 1"] = 87039942244697,
+    ["Epic Kill 2"] = 75248488088600,
+    ["Laugh"] = 87825295777427,
+    ["Cat Laughing Meme"] = 133312610824902,
+    ["Goofy Laugh"] = 128132519337195,
+    ["PVZ Laugh"] = 137716148492089,
+}
+
+local CustomHitSoundEnabled = false
+local CustomKillSoundEnabled = false
+local CurrentHitSound = nil
+local CurrentKillSound = nil
+
+local HitSoundTemplate = Instance.new("Sound")
+HitSoundTemplate.Name = "HitSoundTemplate"
+HitSoundTemplate.Volume = 1
+
+local KillSoundTemplate = Instance.new("Sound")
+KillSoundTemplate.Name = "KillSoundTemplate"
+KillSoundTemplate.Volume = 1
+
+local SoundDebris = game:GetService("Debris")
+
+function playHitSound()
+    if not CustomHitSoundEnabled or not CurrentHitSound then return end
+    HitSoundTemplate.SoundId = "rbxassetid://" .. CurrentHitSound
+
+    local cloned = HitSoundTemplate:Clone()
+    cloned.Parent = workspace.CurrentCamera
+    cloned:Play()
+
+    cloned.Ended:Connect(function()
+        cloned:Destroy()
+    end)
+    SoundDebris:AddItem(cloned, 5)
+end
+
+function playKillSound()
+    if not CustomKillSoundEnabled or not CurrentKillSound then return end
+    KillSoundTemplate.SoundId = "rbxassetid://" .. CurrentKillSound
+
+    local cloned = KillSoundTemplate:Clone()
+    cloned.Parent = workspace.CurrentCamera
+    cloned:Play()
+
+    cloned.Ended:Connect(function()
+        cloned:Destroy()
+    end)
+    SoundDebris:AddItem(cloned, 5)
+end
+
+getgenv().SetCustomHitSoundEnabled = function(v)
+    CustomHitSoundEnabled = v == true
+end
+
+getgenv().SetCustomKillSoundEnabled = function(v)
+    CustomKillSoundEnabled = v == true
+end
+
+getgenv().SetHitSound = function(name)
+    if typeof(name) == "table" then return end
+    CurrentHitSound = HitSounds[name]
+end
+
+getgenv().SetKillSound = function(name)
+    if typeof(name) == "table" then return end
+    CurrentKillSound = KillSounds[name]
+end
 
 loadstring(game:HttpGet("https://raw.githubusercontent.com/majeskooooo/tedt/refs/heads/main/UI"))()
 
