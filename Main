@@ -49,8 +49,10 @@ getgenv().SilentAimSettings = {
     FastFirerateEnabled = false,
     FireRateValue = 0.01,
     KillEffectEnabled = false,
-    KillEffectColor = Color3.fromRGB(255, 0, 0),
+    KillEffectColor = Color3.fromRGB(255, 255, 255),
+    KillEffectFadeDuration = 0.25,
     KillLogsEnabled = false,
+    HitLogsEnabled = false,
     HitboxExpanderEnabled = false,
     HitboxTeamCheck = true,
     HitboxSize = 1,
@@ -508,6 +510,41 @@ local function getRedirectedDirection(Origin, OriginalDirection)
     return nil
 end
 
+-- ============ HIT LOGS ============
+local lastHitNotify = {}
+
+local function registerHit(result)
+    if not Settings.HitLogsEnabled then return end
+    if not result then return end
+
+    local hitPart
+    if typeof(result) == "Instance" then
+        hitPart = result
+    elseif typeof(result) == "table" and result.Instance then
+        hitPart = result.Instance
+    end
+
+    if not hitPart or not hitPart:IsA("BasePart") then return end
+
+    local char = hitPart.Parent
+    if not char then return end
+
+    local hitPlayer = Players:GetPlayerFromCharacter(char)
+    if not hitPlayer or hitPlayer == player then return end
+
+    local now = tick()
+    if lastHitNotify[hitPlayer] and (now - lastHitNotify[hitPlayer]) < 0.05 then
+        return
+    end
+    lastHitNotify[hitPlayer] = now
+
+    Library:Notify({
+        Title = "Hit Logs",
+        Description = "You hit " .. hitPlayer.Name,
+        Time = 3,
+    })
+end
+
 local function isLocalPlayerShooting(Arguments, Method, Origin, OriginalDirection)
     local LocalChar = player.Character
     if not LocalChar then return false end
@@ -570,7 +607,9 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
                     local NewDir = getRedirectedDirection(Origin, A_Ray.Direction)
                     if NewDir then
                         Arguments[2] = Ray.new(Origin, NewDir)
-                        return oldNamecall(unpack(Arguments))
+                        local rets = table.pack(oldNamecall(unpack(Arguments)))
+                        registerHit(rets[1])
+                        return table.unpack(rets, 1, rets.n)
                     end
                 end
             end
@@ -583,7 +622,9 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
                     local NewDir = getRedirectedDirection(Origin, A_Ray.Direction)
                     if NewDir then
                         Arguments[2] = Ray.new(Origin, NewDir)
-                        return oldNamecall(unpack(Arguments))
+                        local rets = table.pack(oldNamecall(unpack(Arguments)))
+                        registerHit(rets[1])
+                        return table.unpack(rets, 1, rets.n)
                     end
                 end
             end
@@ -596,7 +637,9 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
                     local NewDir = getRedirectedDirection(Origin, A_Ray.Direction)
                     if NewDir then
                         Arguments[2] = Ray.new(Origin, NewDir)
-                        return oldNamecall(unpack(Arguments))
+                        local rets = table.pack(oldNamecall(unpack(Arguments)))
+                        registerHit(rets[1])
+                        return table.unpack(rets, 1, rets.n)
                     end
                 end
             end
@@ -609,7 +652,9 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
                     local NewDir = getRedirectedDirection(A_Origin, OriginalDirection)
                     if NewDir then
                         Arguments[3] = NewDir
-                        return oldNamecall(unpack(Arguments))
+                        local rets = table.pack(oldNamecall(unpack(Arguments)))
+                        registerHit(rets[1])
+                        return table.unpack(rets, 1, rets.n)
                     end
                 end
             end
@@ -1015,6 +1060,7 @@ local function performAutoShot(weapon)
 
     for i = 1, projectileCount do
         local hitInstance, hitPosition = castPelletRay(weapon, origin, aimPoint, spreadRadius)
+        registerHit(hitInstance)
         table.insert(bulletData, { origin, hitPosition, hitInstance })
 
         if AutoShootGunTracers then
@@ -1526,15 +1572,17 @@ function playKillEffect()
     KillEffectFrame.BackgroundColor3 = Settings.KillEffectColor
     KillEffectFrame.BackgroundTransparency = 1
 
+    local fadeDuration = Settings.KillEffectFadeDuration or 0.25
+
     local fadeIn = TweenService:Create(
         KillEffectFrame,
-        TweenInfo.new(0.125, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
+        TweenInfo.new(fadeDuration / 2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
         { BackgroundTransparency = 0.4 }
     )
 
     local fadeOut = TweenService:Create(
         KillEffectFrame,
-        TweenInfo.new(0.125, Enum.EasingStyle.Sine, Enum.EasingDirection.In),
+        TweenInfo.new(fadeDuration / 2, Enum.EasingStyle.Sine, Enum.EasingDirection.In),
         { BackgroundTransparency = 1 }
     )
 
@@ -1550,12 +1598,16 @@ getgenv().SetKillEffectEnabled = function(v)
     Settings.KillEffectEnabled = v == true
 end
 
-getgenv().SetKillEffectColor = function(color)
-    Settings.KillEffectColor = color
+getgenv().SetKillEffectFadeDuration = function(duration)
+    Settings.KillEffectFadeDuration = duration
 end
 
 getgenv().SetKillLogsEnabled = function(v)
     Settings.KillLogsEnabled = v == true
+end
+
+getgenv().SetHitLogsEnabled = function(v)
+    Settings.HitLogsEnabled = v == true
 end
 
 -- ============ KILL LOGS ============
