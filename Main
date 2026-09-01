@@ -241,13 +241,21 @@ local function isVisible(targetCharacter)
     params.FilterType = Enum.RaycastFilterType.Blacklist
     params.FilterDescendantsInstances = {player.Character, targetCharacter}
 
-    local result = Workspace:Raycast(origin, direction, params)
+    local result = workspace:Raycast(origin, direction, params)  
     return result == nil
 end
 
 local function isValidTarget(plr)
     if not plr or plr == player then return false end
     if not plr.Character then return false end
+    
+    if Settings.IgnoreTargets and #Settings.IgnoreTargets > 0 then
+        for _, name in ipairs(Settings.IgnoreTargets) do
+            if plr.Name == name then
+                return false
+            end
+        end
+    end
     
     local hum = plr.Character:FindFirstChildOfClass("Humanoid")
     local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
@@ -271,9 +279,9 @@ local function isValidTarget(plr)
         end
     end
 
-if Settings.VisibleCheck then
-    if not isVisible(plr.Character) then return false end
-end
+    if Settings.VisibleCheck and not Settings.HitboxExpanderEnabled then
+        if not isVisible(plr.Character) then return false end
+    end
 
     if Settings.ForceFieldCheck then
         if plr.Character:FindFirstChildOfClass("ForceField") then return false end
