@@ -246,7 +246,7 @@ local function isVisible(targetCharacter)
     params.FilterType = Enum.RaycastFilterType.Blacklist
     params.FilterDescendantsInstances = {player.Character, targetCharacter}
 
-    local result = Workspace:Raycast(origin, direction, params)
+    local result = workspace:Raycast(origin, direction, params)
     return result == nil
 end
 
