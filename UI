@@ -880,8 +880,8 @@ GunSwitcherBox:AddDropdown("SelectGunsToSwitch", {
 
 GunSwitcherBox:AddSlider("SwitchDelay", {
     Text = "Switch Delay",
-    Default = 0.01,
-    Min = 0.01,
+    Default = 0.001,
+    Min = 0.001,
     Max = 1,
     Rounding = 2,
     Callback = function(Value)
@@ -1009,6 +1009,7 @@ PaintTab:AddDropdown("WeaponMaterial", {
 
 
 local SoundTab = WeaponModsTabbox:AddTab(nil, "volume-2")
+local NotifyTab = WeaponModsTabbox:AddTab(nil, "bell")
 
 SoundTab:AddDropdown("WeaponSoundPack", {
     Values = {"None", "Silenced Shot", "Bubble Shot", "Laser Shot", "Dart Gun", "Energy Shot", "Bell Ping", "Xbox Live Notification"},
