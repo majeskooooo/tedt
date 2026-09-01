@@ -229,6 +229,30 @@ local function updateAllTracerBeams()
     end
 end
 
+-- ============ FOV POSITION ============
+-- [FIXED] Movido para ANTES de MAIN FUNCTIONS. Antes, getClosestTarget()
+-- chamava getAdjustedMousePosition() antes dela existir como local,
+-- caindo numa global inexistente e travando a coroutine do loop principal
+-- (por isso nenhum player virava target).
+local GuiService = game:GetService("GuiService")
+
+local function getAdjustedMousePosition()
+    local mousePos = UserInputService:GetMouseLocation()
+    local inset = GuiService:GetGuiInset()
+    return Vector2.new(mousePos.X - inset.X, mousePos.Y - inset.Y)
+end
+
+local function updateFOVPosition()
+    if not fovCircle then return end
+    fovCircle.AnchorPoint = Vector2.new(0.5, 0.5)
+    if UserInputService.TouchEnabled then
+        fovCircle.Position = UDim2.new(0.5, 0, 0.5, 0)
+    else
+        local mousePos = getAdjustedMousePosition()
+        fovCircle.Position = UDim2.new(0, mousePos.X, 0, mousePos.Y)
+    end
+end
+
 -- ============ MAIN FUNCTIONS ============
 local function isVisible(targetCharacter)
     if not targetCharacter then return false end
@@ -241,7 +265,10 @@ local function isVisible(targetCharacter)
     params.FilterType = Enum.RaycastFilterType.Blacklist
     params.FilterDescendantsInstances = {player.Character, targetCharacter}
 
-    local result = workspace:Raycast(origin, direction, params)  
+    -- [FIXED] "Workspace" (maiúsculo) não existe como variável no script;
+    -- só existe "workspace" (minúsculo). Isso causava erro sempre que o
+    -- VisibleCheck era avaliado, matando o loop de detecção de alvo.
+    local result = workspace:Raycast(origin, direction, params)
     return result == nil
 end
 
@@ -399,26 +426,6 @@ local function getClosestTarget()
         end
     end
     return closest
-end
-
--- ============ FOV POSITION ============
-local GuiService = game:GetService("GuiService")
-
-local function getAdjustedMousePosition()
-    local mousePos = UserInputService:GetMouseLocation()
-    local inset = GuiService:GetGuiInset()
-    return Vector2.new(mousePos.X - inset.X, mousePos.Y - inset.Y)
-end
-
-local function updateFOVPosition()
-    if not fovCircle then return end
-    fovCircle.AnchorPoint = Vector2.new(0.5, 0.5)
-    if UserInputService.TouchEnabled then
-        fovCircle.Position = UDim2.new(0.5, 0, 0.5, 0)
-    else
-        local mousePos = getAdjustedMousePosition()
-        fovCircle.Position = UDim2.new(0, mousePos.X, 0, mousePos.Y)
-    end
 end
 
 -- ============ SILENT AIM HOOK ============
