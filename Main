@@ -247,7 +247,7 @@ local function isVisible(targetCharacter)
     local cameraDirection = targetHRP.Position - cameraOrigin
     local cameraResult = workspace:Raycast(cameraOrigin, cameraDirection, params)
 
-    if cameraResult and cameraResult.Instance then
+    if cameraResult then
         local hitModel = cameraResult.Instance:FindFirstAncestorOfClass("Model")
         local hitPlayer = hitModel and Players:GetPlayerFromCharacter(hitModel)
         if hitPlayer and hitPlayer ~= player then
@@ -255,11 +255,10 @@ local function isVisible(targetCharacter)
         end
     end
 
-    local localOrigin = targetHRP.Position
-    local localDirection = localHRP.Position - localOrigin
-    local localResult = workspace:Raycast(localOrigin, localDirection, params)
+    local localDirection = localHRP.Position - targetHRP.Position
+    local localResult = workspace:Raycast(targetHRP.Position, localDirection, params)
 
-    if localResult and localResult.Instance then
+    if localResult then
         local hitModel = localResult.Instance:FindFirstAncestorOfClass("Model")
         local hitPlayer = hitModel and Players:GetPlayerFromCharacter(hitModel)
         if hitPlayer and hitPlayer ~= player then
