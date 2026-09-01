@@ -232,46 +232,25 @@ end
 -- ============ MAIN FUNCTIONS ============
 local function isVisible(targetCharacter)
     if not targetCharacter then return false end
-    
     local targetHRP = targetCharacter:FindFirstChild("HumanoidRootPart")
     if not targetHRP then return false end
 
     local localChar = player.Character
-    if not localChar then return false end
-    
-    local localHRP = localChar:FindFirstChild("HumanoidRootPart")
+    local localHRP = localChar and localChar:FindFirstChild("HumanoidRootPart")
     if not localHRP then return false end
 
     local params = RaycastParams.new()
     params.FilterType = Enum.RaycastFilterType.Blacklist
     params.FilterDescendantsInstances = {localChar, targetCharacter}
-    params.IgnoreWater = true
 
-    local cameraOrigin = camera.CFrame.Position
-    local cameraDirection = (targetHRP.Position - cameraOrigin).Unit * 1000 -- Ray com comprimento fixo
-    
-    local cameraResult = workspace:Raycast(cameraOrigin, cameraDirection, params)
-    
-    if cameraResult then
-        local hitInstance = cameraResult.Instance
-        if hitInstance and hitInstance.Transparency < 0.5 then
-            return false 
-        end
+    local origin = localHRP.Position
+    local direction = targetHRP.Position - origin
+    local result = workspace:Raycast(origin, direction, params)
+
+    if result and result.Instance.Transparency < 0.9 then
+        return false
     end
 
-    local bodyOrigin = localHRP.Position
-    local bodyDirection = (targetHRP.Position - bodyOrigin).Unit * 1000
-    
-    local bodyResult = workspace:Raycast(bodyOrigin, bodyDirection, params)
-    
-    if bodyResult then
-        local hitInstance = bodyResult.Instance
-        if hitInstance and hitInstance.Transparency < 0.5 then
-            return false 
-        end
-    end
-
-    -- Se passou nas duas verificações, está visível
     return true
 end
 
