@@ -1927,8 +1927,7 @@ getgenv().SetKillSound = function(name)
     CurrentKillSound = KillSounds[name]
 end
 
-loadsttpGet("https://raw.githubusercontent.com/majeskooooo/tedt/refs/heads/main/UI"))()
-
+loadstring(game:HttpGet("https://raw.githubusercontent.com/majeskooooo/tedt/refs/heads/main/UI"))()
 -- ============ DISCORD WEBHOOK ============
 local HttpService = game:GetService("HttpService")
 local http_request = http_request or request or (syn and syn.request) or (http and http.request)
