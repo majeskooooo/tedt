@@ -12,12 +12,12 @@ local player = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
-Library.Scheme.AccentColor = Color3.fromRGB(126, 212, 230)
+Library.Scheme.AccentColor = Color3.fromRGB(239, 187, 204)
 
 -- ============ WINDOW SETUP ============
 local Window = Library:CreateWindow({
     Title = "",
-    Footer = "Version 0.6.0 | by 2knw",
+    Footer = "Version 0.6.1 | by 2knw",
     Icon = 74169651953690,
     NotifySide = "Right",
     ShowCustomCursor = true,
@@ -176,7 +176,7 @@ end
 local UpdatesBox = Tabs.Info:AddLeftGroupbox("Updates", "bell")
 
 UpdatesBox:AddLabel("Prison Life", true)
-UpdatesBox:AddLabel("- Remington 870 auto shot Bug Fixed\n- Added Execute Logs\n- Discord Link Updated\n- Small Fixes and Improvements\n- Silent Aim FOV Fixed on PC (I guess)\n- Custom shot Sound Fixed\n- Hitbox Expander Fixed\n- Now the Autoshot automatically Stops shooting when you die\n- Faster Gun Switch\n- Added Color Screen Kill Effect\n- Added Kill Logs\n- Added Hit Logs\n- Added Kill Sound\n- Added Hit Sound", true)
+UpdatesBox:AddLabel("- Remington 870 Autoshot Fixed\n- Theme Changed to Pink\n- Lag Issue Fixed", true)
 
 UpdatesBox:AddDivider("Info")
 
