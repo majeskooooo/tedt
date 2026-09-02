@@ -1126,7 +1126,7 @@ RunService.Heartbeat:Connect(function()
     end
 
     if weapon.Name == "Remington 870" then
-        fireRate = 0.35  
+        fireRate = 0.55  
     end
 
     if (tick() - lastAutoShot) < fireRate then return end
