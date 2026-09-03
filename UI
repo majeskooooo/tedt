@@ -17,7 +17,7 @@ Library.Scheme.AccentColor = Color3.fromRGB(239, 187, 204)
 -- ============ WINDOW SETUP ============
 local Window = Library:CreateWindow({
     Title = "",
-    Footer = "Version 0.6.2 | by 2knw",
+    Footer = "Version 0.6.3 | by 2knw",
     Icon = 74169651953690,
     NotifySide = "Right",
     ShowCustomCursor = true,
@@ -623,10 +623,10 @@ AimbotLeftBox:AddDropdown("AimMode", {
 })
 
 AimbotLeftBox:AddDropdown("TargetPart", {
-    Values = {"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg", "HumanoidRootPart"},
+    Values = {"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg", "HumanoidRootPart", "Random"},
     Default = "HumanoidRootPart",
     Text = "Target Part",
-    Tooltip = "Choose which body part the Silent Aim will lock onto",
+    Tooltip = "Choose which body part the Silent Aim will lock onto. Random cycles part every 0.5s",
     Callback = function(Value)
         getgenv().SilentAimSettings.TargetPart = Value
     end,
@@ -1072,7 +1072,7 @@ SoundTab:AddDropdown("KillSound", {
 })
 
 SoundTab:AddDropdown("HitSound", {
-    Values = {"TF2 Hit", "Metal Bat Hit", "Pickaxe Hit", "Minecraft Hit 1", "MLG Hit", "Fahhh Hit"},
+    Values = {"TF2 Hit", "Metal Bat Hit", "Neverlose", "Minecraft Hit 1", "MLG Hit", "Fahhh Hit"},
     Default = 1,
     Text = "Hit Sound",
     Tooltip = "Select a custom hit sound",
