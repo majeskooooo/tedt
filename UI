@@ -17,7 +17,7 @@ Library.Scheme.AccentColor = Color3.fromRGB(239, 187, 204)
 -- ============ WINDOW SETUP ============
 local Window = Library:CreateWindow({
     Title = "",
-    Footer = "Version 0.6.1 | by 2knw",
+    Footer = "Version 0.6.2 | by 2knw",
     Icon = 74169651953690,
     NotifySide = "Right",
     ShowCustomCursor = true,
@@ -176,7 +176,7 @@ end
 local UpdatesBox = Tabs.Info:AddLeftGroupbox("Updates", "bell")
 
 UpdatesBox:AddLabel("Prison Life", true)
-UpdatesBox:AddLabel("- Remington 870 Autoshot Fixed\n- Theme Changed to Pink\n- Lag Issue Fixed", true)
+UpdatesBox:AddLabel("- Added Fast Switch Keybind for PC\n- ", true)
 
 UpdatesBox:AddDivider("Info")
 
@@ -257,6 +257,15 @@ end
 
 -- ============ PLAYERS TAB ============
 local PlayerSettingsBox = Tabs.Teleports:AddLeftGroupbox("Misc", "sliders")
+
+PlayerSettingsBox:AddCheckbox("CameraFOVEnabled", {
+    Text = "Enable Camera FOV",
+    Tooltip = "Enables custom camera FOV, otherwise uses the game's default",
+    Default = false,
+    Callback = function(v)
+        getgenv().SilentAimSettings.CameraFOVEnabled = v
+    end,
+})
 
 PlayerSettingsBox:AddSlider("CameraFOV", {
     Text = "Camera FOV",
@@ -892,10 +901,21 @@ GunSwitcherBox:AddSlider("SwitchDelay", {
 GunSwitcherBox:AddDivider()
 
 GunSwitcherBox:AddCheckbox("ShowGunSwitchButton", {
-    Text = "Show Gun Switch Button",
+    Text = "Show Fast Switch Button",
     Default = false,
     Callback = function(v)
         FastSwitchButton.Visible = v
+    end,
+})
+
+GunSwitcherBox:AddLabel("Fast Switch Keybind"):AddKeyPicker("FastSwitchKeybind", {
+    Default = "None",
+    NoUI = false,
+    Text = "Fast Switch Keybind",
+    Callback = function()
+        local newState = not getgenv().SilentAimSettings.GunSwitchEnabled
+        getgenv().ToggleGunSwitch(newState)
+        updateFastSwitchButtonVisual()
     end,
 })
 
