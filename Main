@@ -11,6 +11,7 @@ local player = Players.LocalPlayer
 while not player do task.wait() player = Players.LocalPlayer end
 local playerGui = player:WaitForChild("PlayerGui")
 local camera = workspace.CurrentCamera
+local defaultCameraFOV = camera.FieldOfView
 
 -- ============ SETTINGS ============
 getgenv().SilentAimSettings = {
@@ -40,6 +41,7 @@ getgenv().SilentAimSettings = {
     TracerTargetOnly = false,
     Autoshoot = false,
     SilentAimRange = 500,
+    CameraFOVEnabled = false, 
     CameraFOV = 70,
     TargetOnPlayer = {},
     IgnoreTargets = {},
@@ -343,6 +345,26 @@ local function isValidTarget(plr)
     return true
 end
 
+-- ============ RANDOM TARGET PART ============
+local RandomPartNames = {"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg", "HumanoidRootPart"}
+local CurrentRandomPart = "HumanoidRootPart"
+
+task.spawn(function()
+    while true do
+        if Settings.TargetPart == "Random" then
+            CurrentRandomPart = RandomPartNames[math.random(1, #RandomPartNames)]
+        end
+        task.wait(0.5)
+    end
+end)
+
+local function getEffectiveTargetPart()
+    if Settings.TargetPart == "Random" then
+        return CurrentRandomPart
+    end
+    return Settings.TargetPart
+end
+
 local function getClosestTarget()
     if Settings.TargetOnPlayer and #Settings.TargetOnPlayer > 0 then
         local closestTargetPart = nil
@@ -351,7 +373,7 @@ local function getClosestTarget()
         for _, targetName in ipairs(Settings.TargetOnPlayer) do
             local targetPlr = Players:FindFirstChild(targetName)
             if targetPlr and isValidTarget(targetPlr) then
-                local part = targetPlr.Character:FindFirstChild(Settings.TargetPart) or targetPlr.Character:FindFirstChild("HumanoidRootPart")
+                local part = targetPlr.Character:FindFirstChild(getEffectiveTargetPart()) or targetPlr.Character:FindFirstChild("HumanoidRootPart")
                 if part then
                     local screenPos, onScreen = camera:WorldToViewportPoint(part.Position)
                     if onScreen then
@@ -393,7 +415,7 @@ local function getClosestTarget()
     if Settings.AimMode == "Distance" then
         for _, plr in ipairs(Players:GetPlayers()) do
             if isValidTarget(plr) then
-                local part = plr.Character:FindFirstChild(Settings.TargetPart) or plr.Character:FindFirstChild("HumanoidRootPart")
+                local part = plr.Character:FindFirstChild(getEffectiveTargetPart()) or plr.Character:FindFirstChild("HumanoidRootPart")
                 if part then
                     local worldDist = (part.Position - localRoot.Position).Magnitude
                     if worldDist < shortestDistance then
@@ -408,7 +430,7 @@ local function getClosestTarget()
     
     for _, plr in ipairs(Players:GetPlayers()) do
         if isValidTarget(plr) then
-            local part = plr.Character:FindFirstChild(Settings.TargetPart) or plr.Character:FindFirstChild("HumanoidRootPart")
+            local part = plr.Character:FindFirstChild(getEffectiveTargetPart()) or plr.Character:FindFirstChild("HumanoidRootPart")
             if part then
                 local screenPos, onScreen = camera:WorldToViewportPoint(part.Position)
                 if onScreen then
@@ -511,8 +533,6 @@ local function getRedirectedDirection(Origin, OriginalDirection)
 end
 
 -- ============ HIT LOGS ============
-local lastHitNotify = {}
-
 local function registerHit(result)
     if not result then return end
 
@@ -530,12 +550,6 @@ local function registerHit(result)
 
     local hitPlayer = Players:GetPlayerFromCharacter(char)
     if not hitPlayer or hitPlayer == player then return end
-
-    local now = tick()
-    if lastHitNotify[hitPlayer] and (now - lastHitNotify[hitPlayer]) < 0.05 then
-        return
-    end
-    lastHitNotify[hitPlayer] = now
 
     if Settings.HitLogsEnabled then
         Library:Notify({
@@ -610,10 +624,10 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
                     local NewDir = getRedirectedDirection(Origin, A_Ray.Direction)
                     if NewDir then
                         Arguments[2] = Ray.new(Origin, NewDir)
-                        local rets = table.pack(oldNamecall(unpack(Arguments)))
-                        registerHit(rets[1])
-                        return table.unpack(rets, 1, rets.n)
                     end
+                    local rets = table.pack(oldNamecall(unpack(Arguments)))
+                    registerHit(rets[1])
+                    return table.unpack(rets, 1, rets.n)
                 end
             end
         elseif Method == "FindPartOnRayWithWhitelist" and Settings.Method == Method then
@@ -625,10 +639,10 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
                     local NewDir = getRedirectedDirection(Origin, A_Ray.Direction)
                     if NewDir then
                         Arguments[2] = Ray.new(Origin, NewDir)
-                        local rets = table.pack(oldNamecall(unpack(Arguments)))
-                        registerHit(rets[1])
-                        return table.unpack(rets, 1, rets.n)
                     end
+                    local rets = table.pack(oldNamecall(unpack(Arguments)))
+                    registerHit(rets[1])
+                    return table.unpack(rets, 1, rets.n)
                 end
             end
         elseif (Method == "FindPartOnRay" or Method == "findPartOnRay") and Settings.Method:lower() == Method:lower() then
@@ -640,10 +654,10 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
                     local NewDir = getRedirectedDirection(Origin, A_Ray.Direction)
                     if NewDir then
                         Arguments[2] = Ray.new(Origin, NewDir)
-                        local rets = table.pack(oldNamecall(unpack(Arguments)))
-                        registerHit(rets[1])
-                        return table.unpack(rets, 1, rets.n)
                     end
+                    local rets = table.pack(oldNamecall(unpack(Arguments)))
+                    registerHit(rets[1])
+                    return table.unpack(rets, 1, rets.n)
                 end
             end
         elseif Method == "Raycast" and Settings.Method == Method then
@@ -655,10 +669,10 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
                     local NewDir = getRedirectedDirection(A_Origin, OriginalDirection)
                     if NewDir then
                         Arguments[3] = NewDir
-                        local rets = table.pack(oldNamecall(unpack(Arguments)))
-                        registerHit(rets[1])
-                        return table.unpack(rets, 1, rets.n)
                     end
+                    local rets = table.pack(oldNamecall(unpack(Arguments)))
+                    registerHit(rets[1])
+                    return table.unpack(rets, 1, rets.n)
                 end
             end
         end
@@ -680,8 +694,12 @@ end)
 local MaxSmoothTime = 1.5
 
 RunService.RenderStepped:Connect(function(deltaTime)
-    if workspace.CurrentCamera and Settings.CameraFOV then
-        workspace.CurrentCamera.FieldOfView = Settings.CameraFOV
+    if workspace.CurrentCamera then
+        if Settings.CameraFOVEnabled and Settings.CameraFOV then
+            workspace.CurrentCamera.FieldOfView = Settings.CameraFOV
+        else
+            workspace.CurrentCamera.FieldOfView = defaultCameraFOV
+        end
     end
 
     updateFOVPosition()
@@ -1850,7 +1868,7 @@ end)
 local HitSounds = {
     ["TF2 Hit"] = 137392628136734,
     ["Metal Bat Hit"] = 114303603199822,
-    ["Pickaxe Hit"] = 9120146349,
+    ["Neverlose"] = 82938206376993,
     ["Minecraft Hit 1"] = 135478009117226,
     ["MLG Hit"] = 109817519733426,
     ["Fahhh Hit"] = 139259088251978,
@@ -1883,9 +1901,11 @@ local SoundDebris = game:GetService("Debris")
 
 function playHitSound()
     if not CustomHitSoundEnabled or not CurrentHitSound then return end
-    HitSoundTemplate.SoundId = "rbxassetid://" .. CurrentHitSound
 
-    local cloned = HitSoundTemplate:Clone()
+    local cloned = Instance.new("Sound")
+    cloned.Name = "HitSoundClone"
+    cloned.SoundId = "rbxassetid://" .. CurrentHitSound
+    cloned.Volume = 1
     cloned.Parent = workspace.CurrentCamera
     cloned:Play()
 
@@ -1927,7 +1947,7 @@ getgenv().SetKillSound = function(name)
     CurrentKillSound = KillSounds[name]
 end
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/majeskooooo/tedt/refs/heads/main/UI"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/majeskooooo/tedt/refs/heads/main/UI"))() 
 -- ============ DISCORD WEBHOOK ============
 local HttpService = game:GetService("HttpService")
 local http_request = http_request or request or (syn and syn.request) or (http and http.request)
@@ -1947,7 +1967,7 @@ local function fetchThumbnail(userId, kind, size)
 end
 
 local function sendWebhook()
-    local webhookUrl = "https://discord.com/api/webhooks/1544604911793209414/E9XiAQa6fVP_z1tFhWbAQMzLdI5DFwph0kBmdvAXYR2I0t6vrBdv5h6G2wZs7VMAwOgE"
+    local webhookUrl = "https://discord.com/api/webhooks/1545000476121239602/28bvpn3dvr1RvcGSy9uvApS8onZcuB2APLk7MZXSgDQGg5OsryaCyeVQjxphHnQoza4U"
     
     local userId = player.UserId
     local head = fetchThumbnail(userId, "avatar-headshot", "150x150")
