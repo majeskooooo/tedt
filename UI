@@ -12,12 +12,12 @@ local player = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
-Library.Scheme.AccentColor = Color3.fromRGB(126, 212, 230)
+Library.Scheme.AccentColor = Color3.fromRGB(239, 187, 204)
 
 -- ============ WINDOW SETUP ============
 local Window = Library:CreateWindow({
     Title = "",
-    Footer = "Version 0.6.1 | by 2knw",
+    Footer = "Version 0.6.3 | by 2knw",
     Icon = 74169651953690,
     NotifySide = "Right",
     ShowCustomCursor = true,
@@ -176,7 +176,7 @@ end
 local UpdatesBox = Tabs.Info:AddLeftGroupbox("Updates", "bell")
 
 UpdatesBox:AddLabel("Prison Life", true)
-UpdatesBox:AddLabel("- Remington 870 auto shot Bug Fixed\n- Added Execute Logs\n- Discord Link Updated\n- Small Fixes and Improvements\n- Silent Aim FOV Fixed on PC (I guess)\n- Custom shot Sound Fixed\n- Hitbox Expander Fixed\n- Now the Autoshot automatically Stops shooting when you die\n- Faster Gun Switch\n- Added Color Screen Kill Effect\n- Added Kill Logs\n- Added Hit Logs\n- Added Kill Sound\n- Added Hit Sound", true)
+UpdatesBox:AddLabel("- Added Fast Switch Keybind for PC\n- ", true)
 
 UpdatesBox:AddDivider("Info")
 
@@ -257,6 +257,15 @@ end
 
 -- ============ PLAYERS TAB ============
 local PlayerSettingsBox = Tabs.Teleports:AddLeftGroupbox("Misc", "sliders")
+
+PlayerSettingsBox:AddCheckbox("CameraFOVEnabled", {
+    Text = "Enable Camera FOV",
+    Tooltip = "Enables custom camera FOV, otherwise uses the game's default",
+    Default = false,
+    Callback = function(v)
+        getgenv().SilentAimSettings.CameraFOVEnabled = v
+    end,
+})
 
 PlayerSettingsBox:AddSlider("CameraFOV", {
     Text = "Camera FOV",
@@ -614,10 +623,10 @@ AimbotLeftBox:AddDropdown("AimMode", {
 })
 
 AimbotLeftBox:AddDropdown("TargetPart", {
-    Values = {"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg", "HumanoidRootPart"},
+    Values = {"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg", "HumanoidRootPart", "Random"},
     Default = "HumanoidRootPart",
     Text = "Target Part",
-    Tooltip = "Choose which body part the Silent Aim will lock onto",
+    Tooltip = "Choose which body part the Silent Aim will lock onto. Random cycles part every 0.5s",
     Callback = function(Value)
         getgenv().SilentAimSettings.TargetPart = Value
     end,
@@ -892,10 +901,21 @@ GunSwitcherBox:AddSlider("SwitchDelay", {
 GunSwitcherBox:AddDivider()
 
 GunSwitcherBox:AddCheckbox("ShowGunSwitchButton", {
-    Text = "Show Gun Switch Button",
+    Text = "Show Fast Switch Button",
     Default = false,
     Callback = function(v)
         FastSwitchButton.Visible = v
+    end,
+})
+
+GunSwitcherBox:AddLabel("Fast Switch Keybind"):AddKeyPicker("FastSwitchKeybind", {
+    Default = "None",
+    NoUI = false,
+    Text = "Fast Switch Keybind",
+    Callback = function()
+        local newState = not getgenv().SilentAimSettings.GunSwitchEnabled
+        getgenv().ToggleGunSwitch(newState)
+        updateFastSwitchButtonVisual()
     end,
 })
 
@@ -935,8 +955,8 @@ GunModTab:AddDivider("Custom Values")
 
 GunModTab:AddSlider("FireRateValue", {
     Text = "Fire Rate",
-    Default = 0.001,
-    Min = 0.001,
+    Default = 0.01,
+    Min = 0.01,
     Max = 0.1,
     Rounding = 2,
     Callback = function(Value)
@@ -1052,7 +1072,7 @@ SoundTab:AddDropdown("KillSound", {
 })
 
 SoundTab:AddDropdown("HitSound", {
-    Values = {"TF2 Hit", "Metal Bat Hit", "Pickaxe Hit", "Minecraft Hit 1", "MLG Hit", "Fahhh Hit"},
+    Values = {"TF2 Hit", "Metal Bat Hit", "Neverlose", "Minecraft Hit 1", "MLG Hit", "Fahhh Hit"},
     Default = 1,
     Text = "Hit Sound",
     Tooltip = "Select a custom hit sound",
