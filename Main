@@ -1496,14 +1496,59 @@ getgenv().SetGunModFireRate = function(v)
 end
 
 -- ============ AUTO RELOAD ============
-local VirtualInputManager = game:GetService("VirtualInputManager")
-local lastAutoReloadAttempt = 0
+local FuncReloadRemote = nil
+pcall(function()
+    local gunRemotes = ReplicatedStorage:WaitForChild("GunRemotes", 5)
+    if gunRemotes then
+        FuncReloadRemote = gunRemotes:WaitForChild("FuncReload", 5)
+    end
+end)
 
-local function triggerReloadKey()
-    pcall(function()
-        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.R, false, game)
-        task.wait()
-        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.R, false, game)
+local autoReloadInProgress = {}
+
+local function performAutoReload(weapon)
+    if not weapon or not FuncReloadRemote then return end
+    if autoReloadInProgress[weapon] then return end
+
+    local currentReloadSession = weapon:GetAttribute("Local_ReloadSession") or 0
+    if currentReloadSession ~= 0 then return end
+
+    local behavior = weapon:GetAttribute("Behavior")
+    local storedAmmo = weapon:GetAttribute("StoredAmmo")
+
+    if behavior == "Sniper" and storedAmmo and storedAmmo <= 0 then
+        return
+    end
+
+    autoReloadInProgress[weapon] = true
+
+    local reloadTime = weapon:GetAttribute("ReloadTime") or 1
+    local session = tick()
+    weapon:SetAttribute("Local_ReloadSession", session)
+
+    task.spawn(function()
+        FuncReloadRemote:InvokeServer()
+    end)
+
+    task.delay(reloadTime, function()
+        if weapon:GetAttribute("Local_ReloadSession") == session then
+            if behavior == "Sniper" then
+                local currentAmmo = weapon:GetAttribute("Local_CurrentAmmo") or 0
+                local maxAmmo = weapon:GetAttribute("MaxAmmo") or 1
+                local stored = weapon:GetAttribute("StoredAmmo") or 0
+
+                if currentAmmo < maxAmmo then
+                    weapon:SetAttribute("Local_CurrentAmmo", 1)
+                    updateAmmoLabel(weapon, 1)
+                end
+            else
+                local maxAmmo = weapon:GetAttribute("MaxAmmo") or 0
+                weapon:SetAttribute("Local_CurrentAmmo", maxAmmo)
+                updateAmmoLabel(weapon, maxAmmo)
+            end
+            weapon:SetAttribute("Local_ReloadSession", 0)
+        end
+        autoReloadInProgress[weapon] = nil
     end)
 end
 
@@ -1519,10 +1564,7 @@ RunService.Heartbeat:Connect(function()
 
     if currentAmmo > 0 or reloadSession ~= 0 then return end
 
-    if (tick() - lastAutoReloadAttempt) < 0.5 then return end
-    lastAutoReloadAttempt = tick()
-
-    triggerReloadKey()
+    performAutoReload(weapon)
 end)
 
 getgenv().SetAutoReloadEnabled = function(v)
