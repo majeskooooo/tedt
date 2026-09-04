@@ -996,6 +996,16 @@ GunModTab:AddCheckbox("FastFirerate", {
     end,
 })
 
+GunModTab:AddDivider()
+
+GunModTab:AddCheckbox("NoSpread", {
+    Text = "No Spread",
+    Default = false,
+    Callback = function(v)
+        getgenv().SetNoSpreadEnabled(v)
+    end,
+})
+
 GunModTab:AddDivider("Custom Values")
 
 GunModTab:AddSlider("FireRateValue", {
