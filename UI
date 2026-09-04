@@ -258,21 +258,21 @@ end
 -- ============ PLAYERS TAB ============
 local PlayerSettingsBox = Tabs.Teleports:AddLeftGroupbox("Misc", "sliders")
 
-PlayerSettingsBox:AddCheckbox("CameraFOVEnabled", {
-    Text = "Enable Camera FOV",
-    Tooltip = "Enables custom camera FOV, otherwise uses the game's default",
-    Default = false,
-    Callback = function(v)
-        getgenv().SilentAimSettings.CameraFOVEnabled = v
-    end,
-})
-
 PlayerSettingsBox:AddCheckbox("Noclip", {
     Text = "Noclip",
     Tooltip = "Allows you to walk through walls and objects",
     Default = false,
     Callback = function(v)
         getgenv().SetNoclipEnabled(v)
+    end,
+})
+
+PlayerSettingsBox:AddCheckbox("CameraFOVEnabled", {
+    Text = "Enable Camera FOV",
+    Tooltip = "Enables custom camera FOV, otherwise uses the game's default",
+    Default = false,
+    Callback = function(v)
+        getgenv().SilentAimSettings.CameraFOVEnabled = v
     end,
 })
 
