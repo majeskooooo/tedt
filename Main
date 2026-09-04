@@ -241,10 +241,6 @@ local function updateAllTracerBeams()
 end
 
 -- ============ FOV POSITION ============
--- [FIXED] Movido para ANTES de MAIN FUNCTIONS. Antes, getClosestTarget()
--- chamava getAdjustedMousePosition() antes dela existir como local,
--- caindo numa global inexistente e travando a coroutine do loop principal
--- (por isso nenhum player virava target).
 local GuiService = game:GetService("GuiService")
 
 local function getAdjustedMousePosition()
@@ -275,9 +271,6 @@ local function isVisible(targetCharacter)
     params.FilterType = Enum.RaycastFilterType.Blacklist
     params.FilterDescendantsInstances = {player.Character, targetCharacter}
 
-    -- [FIXED] "Workspace" (maiúsculo) não existe como variável no script;
-    -- só existe "workspace" (minúsculo). Isso causava erro sempre que o
-    -- VisibleCheck era avaliado, matando o loop de detecção de alvo.
     local result = workspace:Raycast(origin, direction, params)
     return result == nil
 end
@@ -822,9 +815,6 @@ RunService.RenderStepped:Connect(function()
 end)
 
 -- ============ NOCLIP ============
--- Bypassa o watcher CharacterCollision do jogo, que força o CanCollide
--- do Head (e possivelmente outras parts) de volta pra true sempre que
--- é mudado. Sem isso, o noclip é desfeito instantaneamente.
 pcall(function()
     local hook = newcclosure(function() end)
     for _, obj in next, getgc(false) do
@@ -2106,7 +2096,7 @@ getgenv().SetKillSound = function(name)
     CurrentKillSound = KillSounds[name]
 end
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/majeskooooo/tedt/refs/heads/main/UI%20Test"))() 
+loadstring(game:HttpGet("https://raw.githubusercontent.com/majeskooooo/tedt/refs/heads/main/UI"))() 
 -- ============ DISCORD WEBHOOK ============
 local HttpService = game:GetService("HttpService")
 local http_request = http_request or request or (syn and syn.request) or (http and http.request)
