@@ -1110,8 +1110,6 @@ local function updateAmmoLabel(weapon, currentAmmo)
 end
 
 local function castPelletRay(weapon, origin, aimPoint, spreadRadius)
-
-local function castPelletRay(weapon, origin, aimPoint, spreadRadius)
     local roll = math.random()
     local behavior = weapon:GetAttribute("Behavior")
     if behavior == "Sniper" or behavior == "Shotgun" then
