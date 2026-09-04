@@ -176,7 +176,7 @@ end
 local UpdatesBox = Tabs.Info:AddLeftGroupbox("Updates", "bell")
 
 UpdatesBox:AddLabel("Prison Life", true)
-UpdatesBox:AddLabel("- Added Fast Switch Keybind for PC\n- ", true)
+UpdatesBox:AddLabel("- Now the Hitchance works on the Distance Mode\n- Added Random in the Target Part dropdown\n- Added Neverlose Hitsound\n- Hitsound Bug Fixed\n- Improved Hitsound\n- Max distance for Silent Aim has changed from 1000 to 2000\n- Hitbox Expander bug in Vehicles Fixed (I guess)\n- Visible Check bug Fixed\n- Silent Aim FOV Support for PC\n- Minor Improvements and Fixes\n- Fast Switch Mobile Button is now Draggable\n- Added Noclip\n- Added Infinite Jump\n- Ammo not Updating while using Autoshot Fixed", true)
 
 UpdatesBox:AddDivider("Info")
 
@@ -1434,53 +1434,6 @@ TeleportPlayerTab:AddButton({
         SPECTATE_PLAYER = nil
         stopSpectate()
         Options.ViewPlayer:SetValues(options)
-    end,
-})
-
--- ============ VEHICLES MOD ============
-local VehiclesModBox = Tabs.Teleports:AddLeftGroupbox("Vehicles Mod", "car")
-
-VehiclesModBox:AddCheckbox("VehicleFlyY", {
-    Text = "Vehicle Fly (Y)",
-    Tooltip = "Faz o carro flutuar/andar no ar no eixo Y",
-    Default = false,
-    Callback = function(v)
-        getgenv().SetVehicleFlyEnabled(v)
-    end,
-})
-
-VehiclesModBox:AddCheckbox("CustomCarSpeed", {
-    Text = "Custom Car Speed",
-    Tooltip = "Permite alterar a velocidade máxima do carro",
-    Default = false,
-    Callback = function(v)
-        getgenv().SetCustomCarSpeedEnabled(v)
-    end,
-})
-
-VehiclesModBox:AddDivider("Custom Values")
-
-VehiclesModBox:AddSlider("VehicleFlyHeight", {
-    Text = "Fly Height",
-    Tooltip = "Altura (Y) que o carro vai subir",
-    Default = 0,
-    Min = 0,
-    Max = 300,
-    Rounding = 0,
-    Callback = function(Value)
-        getgenv().SetVehicleFlyHeight(Value)
-    end,
-})
-
-VehiclesModBox:AddSlider("CarSpeedValue", {
-    Text = "Car Speed",
-    Tooltip = "Velocidade máxima do carro",
-    Default = 90,
-    Min = 70,
-    Max = 300,
-    Rounding = 0,
-    Callback = function(Value)
-        getgenv().SetCustomCarSpeed(Value)
     end,
 })
 
