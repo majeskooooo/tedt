@@ -44,6 +44,7 @@ getgenv().SilentAimSettings = {
     SilentAimRange = 500,
     CameraFOVEnabled = false, 
     CameraFOV = 70,
+    NoclipEnabled = false,
     TargetOnPlayer = {},
     IgnoreTargets = {},
     AimMode = "FOV",
@@ -817,6 +818,63 @@ RunService.RenderStepped:Connect(function()
         end
     end
 end)
+
+-- ============ NOCLIP ============
+local PhysicsService = game:GetService("PhysicsService")
+local NOCLIP_GROUP = "KayenNoclip"
+
+pcall(function()
+    PhysicsService:RegisterCollisionGroup(NOCLIP_GROUP)
+end)
+pcall(function()
+    PhysicsService:CreateCollisionGroup(NOCLIP_GROUP) 
+end)
+pcall(function()
+    PhysicsService:CollisionGroupSetCollidable(NOCLIP_GROUP, "Default", false)
+end)
+pcall(function()
+    PhysicsService:CollisionGroupSetCollidable(NOCLIP_GROUP, NOCLIP_GROUP, false)
+end)
+
+local function setPartCollisionGroup(part, groupName)
+    pcall(function()
+        part.CollisionGroup = groupName
+    end)
+end
+
+local function applyNoclipToCharacter(char)
+    if not char then return end
+    local groupName = Settings.NoclipEnabled and NOCLIP_GROUP or "Default"
+    for _, part in ipairs(char:GetDescendants()) do
+        if part:IsA("BasePart") then
+            setPartCollisionGroup(part, groupName)
+        end
+    end
+end
+
+local function hookNoclipDescendants(char)
+    char.DescendantAdded:Connect(function(desc)
+        if desc:IsA("BasePart") then
+            setPartCollisionGroup(desc, Settings.NoclipEnabled and NOCLIP_GROUP or "Default")
+        end
+    end)
+end
+
+if player.Character then
+    applyNoclipToCharacter(player.Character)
+    hookNoclipDescendants(player.Character)
+end
+
+player.CharacterAdded:Connect(function(char)
+    task.wait(0.1)
+    applyNoclipToCharacter(char)
+    hookNoclipDescendants(char)
+end)
+
+getgenv().SetNoclipEnabled = function(v)
+    Settings.NoclipEnabled = v == true
+    applyNoclipToCharacter(player.Character)
+end
 
 -- ============ ANTI-TASE ============
 -- Method by IsaTheNoob
