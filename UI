@@ -267,6 +267,15 @@ PlayerSettingsBox:AddCheckbox("CameraFOVEnabled", {
     end,
 })
 
+PlayerSettingsBox:AddCheckbox("Noclip", {
+    Text = "Noclip",
+    Tooltip = "Allows you to walk through walls and objects",
+    Default = false,
+    Callback = function(v)
+        getgenv().SetNoclipEnabled(v)
+    end,
+})
+
 PlayerSettingsBox:AddSlider("CameraFOV", {
     Text = "Camera FOV",
     Tooltip = "Changes camera FOV",
