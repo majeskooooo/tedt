@@ -53,6 +53,7 @@ getgenv().SilentAimSettings = {
     AutoFire = false,
     FastFirerateEnabled = false,
     FireRateValue = 0.01,
+    AutoReloadEnabled = false,
     KillEffectEnabled = false,
     KillEffectColor = Color3.fromRGB(255, 255, 255),
     KillEffectFadeDuration = 0.25,
@@ -479,9 +480,9 @@ local ExpectedArguments = {
 }
 
 local function CalculateChance(Percentage)
-    if Percentage <= 0 then return false end
-    if Percentage >= 100 then return true end
-    return Random.new():NextNumber(0, 100) < Percentage
+    Percentage = math.floor(Percentage)
+    local chance = math.floor(Random.new().NextNumber(Random.new(), 0, 1) * 100) / 100
+    return chance <= Percentage / 100
 end
 
 local function ValidateArguments(Args, RayMethod)
@@ -637,30 +638,26 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 
         if Origin and Direction and isLocalPlayerShooting(Arguments, Method, Origin, Direction) then
             if Settings.Enabled and Settings.Method:lower() == Method:lower() then
-                if Method == "FindPartOnRayWithIgnoreList" and ValidateArguments(Arguments, ExpectedArguments.FindPartOnRayWithIgnoreList) then
-                    local NewDir = getRedirectedDirection(Origin, Direction)
-                    if NewDir then Arguments[2] = Ray.new(Origin, NewDir) end
-                elseif Method == "FindPartOnRayWithWhitelist" and ValidateArguments(Arguments, ExpectedArguments.FindPartOnRayWithWhitelist) then
-                    local NewDir = getRedirectedDirection(Origin, Direction)
-                    if NewDir then Arguments[2] = Ray.new(Origin, NewDir) end
-                elseif (Method == "FindPartOnRay" or Method == "findPartOnRay") and ValidateArguments(Arguments, ExpectedArguments.FindPartOnRay) then
-                    local NewDir = getRedirectedDirection(Origin, Direction)
-                    if NewDir then Arguments[2] = Ray.new(Origin, NewDir) end
-                elseif Method == "Raycast" and ValidateArguments(Arguments, ExpectedArguments.Raycast) then
-                    local NewDir = getRedirectedDirection(Origin, Direction)
-                    if NewDir then Arguments[3] = NewDir end
+                local chance = CalculateChance(Settings.HitChance)
+                if chance == true then
+                    if Method == "FindPartOnRayWithIgnoreList" and ValidateArguments(Arguments, ExpectedArguments.FindPartOnRayWithIgnoreList) then
+                        local NewDir = getRedirectedDirection(Origin, Direction)
+                        if NewDir then Arguments[2] = Ray.new(Origin, NewDir) end
+                    elseif Method == "FindPartOnRayWithWhitelist" and ValidateArguments(Arguments, ExpectedArguments.FindPartOnRayWithWhitelist) then
+                        local NewDir = getRedirectedDirection(Origin, Direction)
+                        if NewDir then Arguments[2] = Ray.new(Origin, NewDir) end
+                    elseif (Method == "FindPartOnRay" or Method == "findPartOnRay") and ValidateArguments(Arguments, ExpectedArguments.FindPartOnRay) then
+                        local NewDir = getRedirectedDirection(Origin, Direction)
+                        if NewDir then Arguments[2] = Ray.new(Origin, NewDir) end
+                    elseif Method == "Raycast" and ValidateArguments(Arguments, ExpectedArguments.Raycast) then
+                        local NewDir = getRedirectedDirection(Origin, Direction)
+                        if NewDir then Arguments[3] = NewDir end
+                    end
                 end
             end
 
             local rets = table.pack(oldNamecall(unpack(Arguments)))
-
-            local chancePassed = CalculateChance(Settings.HitChance)
-            if chancePassed then
-                registerHit(rets[1])
-            else
-                rets[1] = nil
-            end
-
+            registerHit(rets[1])
             return table.unpack(rets, 1, rets.n)
         end
     end
@@ -982,65 +979,6 @@ getgenv().ToggleGunSwitch = function(enabled)
     end
 end
 
--- ============ NO SPREAD ============
-local NoSpreadEnabled = false
-local originalSpreadRadius = {}
-
-local function applyNoSpread(tool)
-    if not tool or not tool:IsA("Tool") then return end
-    if not table.find(gunModNames, tool.Name) then return end
-
-    if not originalSpreadRadius[tool] then
-        originalSpreadRadius[tool] = tool:GetAttribute("SpreadRadius") or 0
-    end
-
-    if NoSpreadEnabled then
-        tool:SetAttribute("SpreadRadius", 0)
-    else
-        tool:SetAttribute("SpreadRadius", originalSpreadRadius[tool])
-    end
-end
-
-local function applyNoSpreadToAllTools()
-    local char = player.Character
-    if char then
-        for _, tool in ipairs(char:GetChildren()) do
-            applyNoSpread(tool)
-        end
-    end
-
-    local backpack = player:FindFirstChild("Backpack")
-    if backpack then
-        for _, tool in ipairs(backpack:GetChildren()) do
-            applyNoSpread(tool)
-        end
-    end
-end
-
-local function hookNoSpreadContainer(container)
-    if not container then return end
-    container.ChildAdded:Connect(function(child)
-        task.wait(0.05)
-        applyNoSpread(child)
-    end)
-end
-
-hookNoSpreadContainer(player:FindFirstChild("Backpack"))
-if player.Character then
-    hookNoSpreadContainer(player.Character)
-end
-
-player.CharacterAdded:Connect(function(char)
-    hookNoSpreadContainer(char)
-    task.wait(0.3)
-    applyNoSpreadToAllTools()
-end)
-
-getgenv().SetNoSpreadEnabled = function(v)
-    NoSpreadEnabled = v == true
-    applyNoSpreadToAllTools()
-end
-
 -- ============ HITBOX EXPANDER ============
 local hitboxModified = {}
 
@@ -1221,17 +1159,10 @@ local function performAutoShot(weapon)
     local muzzlePos = muzzle and muzzle.Position or origin
 
     local bulletData = {}
-    local chancePassed = CalculateChance(Settings.HitChance)
 
     for i = 1, projectileCount do
         local hitInstance, hitPosition = castPelletRay(weapon, origin, aimPoint, spreadRadius)
-
-        if chancePassed then
-            registerHit(hitInstance)
-        else
-            hitInstance = nil
-        end
-
+        registerHit(hitInstance)
         table.insert(bulletData, { origin, hitPosition, hitInstance })
 
         if AutoShootGunTracers then
@@ -1295,8 +1226,8 @@ RunService.Heartbeat:Connect(function()
         fireRate = fireRate * 1.5
     end
 
-    if weapon.Name == "Remington 870" and not Settings.FastFirerateEnabled then
-        fireRate = 0.55
+    if weapon.Name == "Remington 870" then
+        fireRate = 0.55  
     end
 
     if (tick() - lastAutoShot) < fireRate then return end
@@ -1562,6 +1493,40 @@ getgenv().SetGunModFireRate = function(v)
     if Settings.FastFirerateEnabled then
         applyGunModToAllTools()
     end
+end
+
+-- ============ AUTO RELOAD ============
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local lastAutoReloadAttempt = 0
+
+local function triggerReloadKey()
+    pcall(function()
+        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.R, false, game)
+        task.wait()
+        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.R, false, game)
+    end)
+end
+
+RunService.Heartbeat:Connect(function()
+    if not Settings.AutoReloadEnabled then return end
+
+    local weapon = getEquippedWeapon()
+    if not weapon then return end
+    if not table.find(gunModNames, weapon.Name) then return end
+
+    local currentAmmo = weapon:GetAttribute("Local_CurrentAmmo") or 0
+    local reloadSession = weapon:GetAttribute("Local_ReloadSession") or 0
+
+    if currentAmmo > 0 or reloadSession ~= 0 then return end
+
+    if (tick() - lastAutoReloadAttempt) < 0.5 then return end
+    lastAutoReloadAttempt = tick()
+
+    triggerReloadKey()
+end)
+
+getgenv().SetAutoReloadEnabled = function(v)
+    Settings.AutoReloadEnabled = v == true
 end
 
 -- ============ WEAPON SKIN ============
@@ -2099,7 +2064,7 @@ getgenv().SetKillSound = function(name)
     CurrentKillSound = KillSounds[name]
 end
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/majeskooooo/tedt/refs/heads/main/UI%20Test"))() 
+loadstring(game:HttpGet("https://raw.githubusercontent.com/majeskooooo/tedt/refs/heads/main/UI"))() 
 -- ============ DISCORD WEBHOOK ============
 local HttpService = game:GetService("HttpService")
 local http_request = http_request or request or (syn and syn.request) or (http and http.request)
