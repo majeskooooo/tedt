@@ -12,6 +12,7 @@ while not player do task.wait() player = Players.LocalPlayer end
 local playerGui = player:WaitForChild("PlayerGui")
 local camera = workspace.CurrentCamera
 local defaultCameraFOV = camera.FieldOfView
+local mouse = player:GetMouse()
 
 -- ============ SETTINGS ============
 getgenv().SilentAimSettings = {
@@ -255,8 +256,7 @@ local function updateFOVPosition()
     if UserInputService.TouchEnabled then
         fovCircle.Position = UDim2.new(0.5, 0, 0.5, 0)
     else
-        local mousePos = getAdjustedMousePosition()
-        fovCircle.Position = UDim2.new(0, mousePos.X, 0, mousePos.Y)
+        fovCircle.Position = UDim2.new(0, mouse.X, 0, mouse.Y)
     end
 end
 
@@ -313,7 +313,7 @@ local function isValidTarget(plr)
         end
     end
 
-    if Settings.VisibleCheck and not Settings.HitboxExpanderEnabled then
+    if Settings.VisibleCheck then
         if not isVisible(plr.Character) then return false end
     end
 
@@ -378,7 +378,7 @@ local function getClosestTarget()
                     local screenPos, onScreen = camera:WorldToViewportPoint(part.Position)
                     if onScreen then
                         local screenCenter = Vector2.new(camera.ViewportSize.X/2, camera.ViewportSize.Y/2)
-                        local mousePos = getAdjustedMousePosition()
+                        local mousePos = Vector2.new(mouse.X, mouse.Y)
                         local useMouse = not UserInputService.TouchEnabled
                         local screenDist
                         if useMouse then
@@ -406,7 +406,7 @@ local function getClosestTarget()
     if not localRoot then return nil end
     
     local screenCenter = Vector2.new(camera.ViewportSize.X/2, camera.ViewportSize.Y/2)
-    local mousePos = getAdjustedMousePosition()
+    local mousePos = Vector2.new(mouse.X, mouse.Y)
     local useMouse = not UserInputService.TouchEnabled
     
     local closest = nil
@@ -607,74 +607,55 @@ local function isLocalPlayerShooting(Arguments, Method, Origin, OriginalDirectio
     return false
 end
 
+local function tryGetOriginDirection(Method, Arguments)
+    if Method == "FindPartOnRayWithIgnoreList" or Method == "FindPartOnRayWithWhitelist"
+        or Method == "FindPartOnRay" or Method == "findPartOnRay" then
+        local A_Ray = Arguments[2]
+        if typeof(A_Ray) == "Ray" then
+            return A_Ray.Origin, A_Ray.Direction
+        end
+    elseif Method == "Raycast" then
+        local A_Origin = Arguments[2]
+        local A_Direction = Arguments[3]
+        if typeof(A_Origin) == "Vector3" and typeof(A_Direction) == "Vector3" then
+            return A_Origin, A_Direction
+        end
+    end
+    return nil, nil
+end
+
 local oldNamecall
 oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
     local Method = getnamecallmethod()
     local Arguments = {...}
     local self = Arguments[1]
-    local chance = CalculateChance(Settings.HitChance)
-    
-    if Settings.Enabled and self == workspace and not checkcaller() and chance == true then
-        if Method == "FindPartOnRayWithIgnoreList" and Settings.Method == Method then
-            if ValidateArguments(Arguments, ExpectedArguments.FindPartOnRayWithIgnoreList) then
-                local A_Ray = Arguments[2]
-                local Origin = A_Ray.Origin
-                
-                if isLocalPlayerShooting(Arguments, Method, Origin, A_Ray.Direction) then
-                    local NewDir = getRedirectedDirection(Origin, A_Ray.Direction)
-                    if NewDir then
-                        Arguments[2] = Ray.new(Origin, NewDir)
+
+    if self == workspace and not checkcaller() then
+        local Origin, Direction = tryGetOriginDirection(Method, Arguments)
+
+        if Origin and Direction and isLocalPlayerShooting(Arguments, Method, Origin, Direction) then
+            if Settings.Enabled and Settings.Method:lower() == Method:lower() then
+                local chance = CalculateChance(Settings.HitChance)
+                if chance == true then
+                    if Method == "FindPartOnRayWithIgnoreList" and ValidateArguments(Arguments, ExpectedArguments.FindPartOnRayWithIgnoreList) then
+                        local NewDir = getRedirectedDirection(Origin, Direction)
+                        if NewDir then Arguments[2] = Ray.new(Origin, NewDir) end
+                    elseif Method == "FindPartOnRayWithWhitelist" and ValidateArguments(Arguments, ExpectedArguments.FindPartOnRayWithWhitelist) then
+                        local NewDir = getRedirectedDirection(Origin, Direction)
+                        if NewDir then Arguments[2] = Ray.new(Origin, NewDir) end
+                    elseif (Method == "FindPartOnRay" or Method == "findPartOnRay") and ValidateArguments(Arguments, ExpectedArguments.FindPartOnRay) then
+                        local NewDir = getRedirectedDirection(Origin, Direction)
+                        if NewDir then Arguments[2] = Ray.new(Origin, NewDir) end
+                    elseif Method == "Raycast" and ValidateArguments(Arguments, ExpectedArguments.Raycast) then
+                        local NewDir = getRedirectedDirection(Origin, Direction)
+                        if NewDir then Arguments[3] = NewDir end
                     end
-                    local rets = table.pack(oldNamecall(unpack(Arguments)))
-                    registerHit(rets[1])
-                    return table.unpack(rets, 1, rets.n)
                 end
             end
-        elseif Method == "FindPartOnRayWithWhitelist" and Settings.Method == Method then
-            if ValidateArguments(Arguments, ExpectedArguments.FindPartOnRayWithWhitelist) then
-                local A_Ray = Arguments[2]
-                local Origin = A_Ray.Origin
-                
-                if isLocalPlayerShooting(Arguments, Method, Origin, A_Ray.Direction) then
-                    local NewDir = getRedirectedDirection(Origin, A_Ray.Direction)
-                    if NewDir then
-                        Arguments[2] = Ray.new(Origin, NewDir)
-                    end
-                    local rets = table.pack(oldNamecall(unpack(Arguments)))
-                    registerHit(rets[1])
-                    return table.unpack(rets, 1, rets.n)
-                end
-            end
-        elseif (Method == "FindPartOnRay" or Method == "findPartOnRay") and Settings.Method:lower() == Method:lower() then
-            if ValidateArguments(Arguments, ExpectedArguments.FindPartOnRay) then
-                local A_Ray = Arguments[2]
-                local Origin = A_Ray.Origin
-                
-                if isLocalPlayerShooting(Arguments, Method, Origin, A_Ray.Direction) then
-                    local NewDir = getRedirectedDirection(Origin, A_Ray.Direction)
-                    if NewDir then
-                        Arguments[2] = Ray.new(Origin, NewDir)
-                    end
-                    local rets = table.pack(oldNamecall(unpack(Arguments)))
-                    registerHit(rets[1])
-                    return table.unpack(rets, 1, rets.n)
-                end
-            end
-        elseif Method == "Raycast" and Settings.Method == Method then
-            if ValidateArguments(Arguments, ExpectedArguments.Raycast) then
-                local A_Origin = Arguments[2]
-                local OriginalDirection = Arguments[3]
-                
-                if isLocalPlayerShooting(Arguments, Method, A_Origin, OriginalDirection) then
-                    local NewDir = getRedirectedDirection(A_Origin, OriginalDirection)
-                    if NewDir then
-                        Arguments[3] = NewDir
-                    end
-                    local rets = table.pack(oldNamecall(unpack(Arguments)))
-                    registerHit(rets[1])
-                    return table.unpack(rets, 1, rets.n)
-                end
-            end
+
+            local rets = table.pack(oldNamecall(unpack(Arguments)))
+            registerHit(rets[1])
+            return table.unpack(rets, 1, rets.n)
         end
     end
     return oldNamecall(...)
@@ -949,6 +930,17 @@ local function applyHitbox(plr)
     if not char then return end
     local hrp = char:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
+
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    local isSeated = humanoid and (humanoid.Sit or humanoid.SeatPart ~= nil)
+
+    if isSeated then
+        if hitboxModified[hrp] then
+            resetHitbox(hrp)
+            hitboxModified[hrp] = nil
+        end
+        return
+    end
 
     if Settings.HitboxTeamCheck and player.Team and plr.Team == player.Team then
         if hitboxModified[hrp] then
