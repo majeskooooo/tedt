@@ -199,8 +199,26 @@ FeedbackBox:AddInput("FeedbackText", {
     Text = "",
     Placeholder = "Type your feedback here",
     ClearTextOnFocus = false,
-    Finished = true,
+    Finished = false,
 })
+
+do
+    local feedbackHolder = Options.FeedbackText.Holder
+    local feedbackBox = feedbackHolder:FindFirstChildOfClass("TextBox")
+    if feedbackBox then
+        feedbackBox.AnchorPoint = Vector2.new(0, 1)
+        feedbackBox.Position = UDim2.fromScale(0, 1)
+        feedbackBox.Size = UDim2.new(1, 0, 0, 76)
+        feedbackBox.TextScaled = false
+        feedbackBox.TextSize = 14
+        feedbackBox.TextWrapped = true
+        feedbackBox.MultiLine = true
+        feedbackBox.TextXAlignment = Enum.TextXAlignment.Left
+        feedbackBox.TextYAlignment = Enum.TextYAlignment.Top
+
+        feedbackHolder.Size = UDim2.new(1, 0, 0, 90)
+    end
+end
 
 FeedbackBox:AddButton({
     Text = "Send Feedback",
