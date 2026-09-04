@@ -637,26 +637,30 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
 
         if Origin and Direction and isLocalPlayerShooting(Arguments, Method, Origin, Direction) then
             if Settings.Enabled and Settings.Method:lower() == Method:lower() then
-                local chance = CalculateChance(Settings.HitChance)
-                if chance == true then
-                    if Method == "FindPartOnRayWithIgnoreList" and ValidateArguments(Arguments, ExpectedArguments.FindPartOnRayWithIgnoreList) then
-                        local NewDir = getRedirectedDirection(Origin, Direction)
-                        if NewDir then Arguments[2] = Ray.new(Origin, NewDir) end
-                    elseif Method == "FindPartOnRayWithWhitelist" and ValidateArguments(Arguments, ExpectedArguments.FindPartOnRayWithWhitelist) then
-                        local NewDir = getRedirectedDirection(Origin, Direction)
-                        if NewDir then Arguments[2] = Ray.new(Origin, NewDir) end
-                    elseif (Method == "FindPartOnRay" or Method == "findPartOnRay") and ValidateArguments(Arguments, ExpectedArguments.FindPartOnRay) then
-                        local NewDir = getRedirectedDirection(Origin, Direction)
-                        if NewDir then Arguments[2] = Ray.new(Origin, NewDir) end
-                    elseif Method == "Raycast" and ValidateArguments(Arguments, ExpectedArguments.Raycast) then
-                        local NewDir = getRedirectedDirection(Origin, Direction)
-                        if NewDir then Arguments[3] = NewDir end
-                    end
+                if Method == "FindPartOnRayWithIgnoreList" and ValidateArguments(Arguments, ExpectedArguments.FindPartOnRayWithIgnoreList) then
+                    local NewDir = getRedirectedDirection(Origin, Direction)
+                    if NewDir then Arguments[2] = Ray.new(Origin, NewDir) end
+                elseif Method == "FindPartOnRayWithWhitelist" and ValidateArguments(Arguments, ExpectedArguments.FindPartOnRayWithWhitelist) then
+                    local NewDir = getRedirectedDirection(Origin, Direction)
+                    if NewDir then Arguments[2] = Ray.new(Origin, NewDir) end
+                elseif (Method == "FindPartOnRay" or Method == "findPartOnRay") and ValidateArguments(Arguments, ExpectedArguments.FindPartOnRay) then
+                    local NewDir = getRedirectedDirection(Origin, Direction)
+                    if NewDir then Arguments[2] = Ray.new(Origin, NewDir) end
+                elseif Method == "Raycast" and ValidateArguments(Arguments, ExpectedArguments.Raycast) then
+                    local NewDir = getRedirectedDirection(Origin, Direction)
+                    if NewDir then Arguments[3] = NewDir end
                 end
             end
 
             local rets = table.pack(oldNamecall(unpack(Arguments)))
-            registerHit(rets[1])
+
+            local chancePassed = CalculateChance(Settings.HitChance)
+            if chancePassed then
+                registerHit(rets[1])
+            else
+                rets[1] = nil
+            end
+
             return table.unpack(rets, 1, rets.n)
         end
     end
@@ -978,6 +982,65 @@ getgenv().ToggleGunSwitch = function(enabled)
     end
 end
 
+-- ============ NO SPREAD ============
+local NoSpreadEnabled = false
+local originalSpreadRadius = {}
+
+local function applyNoSpread(tool)
+    if not tool or not tool:IsA("Tool") then return end
+    if not table.find(gunModNames, tool.Name) then return end
+
+    if not originalSpreadRadius[tool] then
+        originalSpreadRadius[tool] = tool:GetAttribute("SpreadRadius") or 0
+    end
+
+    if NoSpreadEnabled then
+        tool:SetAttribute("SpreadRadius", 0)
+    else
+        tool:SetAttribute("SpreadRadius", originalSpreadRadius[tool])
+    end
+end
+
+local function applyNoSpreadToAllTools()
+    local char = player.Character
+    if char then
+        for _, tool in ipairs(char:GetChildren()) do
+            applyNoSpread(tool)
+        end
+    end
+
+    local backpack = player:FindFirstChild("Backpack")
+    if backpack then
+        for _, tool in ipairs(backpack:GetChildren()) do
+            applyNoSpread(tool)
+        end
+    end
+end
+
+local function hookNoSpreadContainer(container)
+    if not container then return end
+    container.ChildAdded:Connect(function(child)
+        task.wait(0.05)
+        applyNoSpread(child)
+    end)
+end
+
+hookNoSpreadContainer(player:FindFirstChild("Backpack"))
+if player.Character then
+    hookNoSpreadContainer(player.Character)
+end
+
+player.CharacterAdded:Connect(function(char)
+    hookNoSpreadContainer(char)
+    task.wait(0.3)
+    applyNoSpreadToAllTools()
+end)
+
+getgenv().SetNoSpreadEnabled = function(v)
+    NoSpreadEnabled = v == true
+    applyNoSpreadToAllTools()
+end
+
 -- ============ HITBOX EXPANDER ============
 local hitboxModified = {}
 
@@ -1145,17 +1208,10 @@ local function performAutoShot(weapon)
     local origin = head.Position
     autoShootParams.FilterDescendantsInstances = { char }
 
-    local aimPoint
-    if CalculateChance(Settings.HitChance) then
-        aimPoint = currentTarget.Position
-        local redirected = getRedirectedDirection(origin, aimPoint - origin)
-        if redirected then
-            aimPoint = origin + redirected
-        end
-    else
-        local camRay = camera:ViewportPointToRay(mouse.X, mouse.Y)
-        local distanceToTarget = (currentTarget.Position - origin).Magnitude
-        aimPoint = camRay.Origin + camRay.Direction * distanceToTarget
+    local aimPoint = currentTarget.Position
+    local redirected = getRedirectedDirection(origin, aimPoint - origin)
+    if redirected then
+        aimPoint = origin + redirected
     end
 
     local projectileCount = weapon:GetAttribute("ProjectileCount") or 1
@@ -1165,10 +1221,17 @@ local function performAutoShot(weapon)
     local muzzlePos = muzzle and muzzle.Position or origin
 
     local bulletData = {}
+    local chancePassed = CalculateChance(Settings.HitChance)
 
     for i = 1, projectileCount do
         local hitInstance, hitPosition = castPelletRay(weapon, origin, aimPoint, spreadRadius)
-        registerHit(hitInstance)
+
+        if chancePassed then
+            registerHit(hitInstance)
+        else
+            hitInstance = nil
+        end
+
         table.insert(bulletData, { origin, hitPosition, hitInstance })
 
         if AutoShootGunTracers then
