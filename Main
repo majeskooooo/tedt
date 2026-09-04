@@ -45,6 +45,7 @@ getgenv().SilentAimSettings = {
     CameraFOVEnabled = false, 
     CameraFOV = 70,
     NoclipEnabled = false,
+    InfiniteJumpEnabled = false,
     TargetOnPlayer = {},
     IgnoreTargets = {},
     AimMode = "FOV",
@@ -866,6 +867,21 @@ getgenv().SetNoclipEnabled = function(v)
     else
         stopNoclip()
     end
+end
+
+-- ============ INFINITE JUMP ============
+UserInputService.JumpRequest:Connect(function()
+    if Settings.InfiniteJumpEnabled then
+        local char = player.Character
+        local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end
+end)
+
+getgenv().SetInfiniteJumpEnabled = function(v)
+    Settings.InfiniteJumpEnabled = v == true
 end
 
 -- ============ ANTI-TASE ============
