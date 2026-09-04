@@ -1,4 +1,4 @@
--- UI Script Kayen | Prison Life - Obsidian Library Version
+-- UI Script Precision | Prison Life
 local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
 local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
 local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
@@ -17,7 +17,7 @@ Library.Scheme.AccentColor = Color3.fromRGB(239, 187, 204)
 -- ============ WINDOW SETUP ============
 local Window = Library:CreateWindow({
     Title = "",
-    Footer = "Version 0.6.3 | by 2knw",
+    Footer = "Version 0.6.4 | by 2knw",
     Icon = 74169651953690,
     NotifySide = "Right",
     ShowCustomCursor = true,
@@ -176,7 +176,7 @@ end
 local UpdatesBox = Tabs.Info:AddLeftGroupbox("Updates", "bell")
 
 UpdatesBox:AddLabel("Prison Life", true)
-UpdatesBox:AddLabel("- Now the Hitchance works on the Distance Mode\n- Added Random in the Target Part dropdown\n- Added Neverlose Hitsound\n- Hitsound Bug Fixed\n- Improved Hitsound\n- Max distance for Silent Aim has changed from 1000 to 2000\n- Hitbox Expander bug in Vehicles Fixed (I guess)\n- Visible Check bug Fixed\n- Silent Aim FOV Support for PC\n- Minor Improvements and Fixes\n- Fast Switch Mobile Button is now Draggable\n- Added Noclip\n- Added Infinite Jump\n- Ammo not Updating while using Autoshot Fixed", true)
+UpdatesBox:AddLabel("- Added Auto reload\n- Added JobId to Logs\n- Added Feedback System", true)
 
 UpdatesBox:AddDivider("Info")
 
@@ -186,6 +186,44 @@ UpdatesBox:AddButton({
         pcall(function()
             setclipboard("discord.gg/unxmjPC4x7")
         end)
+    end,
+})
+
+-- ============ FEEDBACK SYSTEM GROUP ============
+local FeedbackBox = Tabs.Info:AddRightGroupbox("Feedback System", "mail")
+FeedbackBox:SetDescription("Send feedback to developer")
+
+FeedbackBox:AddLabel("Your feedback")
+
+FeedbackBox:AddInput("FeedbackText", {
+    Text = "",
+    Placeholder = "Type your feedback here",
+    ClearTextOnFocus = false,
+    Finished = false,
+})
+
+do
+    local feedbackHolder = Options.FeedbackText.Holder
+    local feedbackBox = feedbackHolder:FindFirstChildOfClass("TextBox")
+    if feedbackBox then
+        feedbackBox.AnchorPoint = Vector2.new(0, 1)
+        feedbackBox.Position = UDim2.fromScale(0, 1)
+        feedbackBox.Size = UDim2.new(1, 0, 0, 76)
+        feedbackBox.TextScaled = false
+        feedbackBox.TextSize = 14
+        feedbackBox.TextWrapped = true
+        feedbackBox.MultiLine = true
+        feedbackBox.TextXAlignment = Enum.TextXAlignment.Left
+        feedbackBox.TextYAlignment = Enum.TextYAlignment.Top
+
+        feedbackHolder.Size = UDim2.new(1, 0, 0, 90)
+    end
+end
+
+FeedbackBox:AddButton({
+    Text = "Send Feedback",
+    Func = function()
+        getgenv().SendFeedback(Options.FeedbackText.Value)
     end,
 })
 
@@ -996,12 +1034,21 @@ GunModTab:AddCheckbox("FastFirerate", {
     end,
 })
 
+GunModTab:AddCheckbox("AutoReload", {
+    Text = "Auto Reload",
+    Tooltip = "Automatically reloads the weapon when ammo reaches 0",
+    Default = false,
+    Callback = function(v)
+        getgenv().SetAutoReloadEnabled(v)
+    end,
+})
+
 GunModTab:AddDivider("Custom Values")
 
 GunModTab:AddSlider("FireRateValue", {
     Text = "Fire Rate",
-    Default = 0.01,
-    Min = 0.01,
+    Default = 0.001,
+    Min = 0.001,
     Max = 0.1,
     Rounding = 2,
     Callback = function(Value)
