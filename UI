@@ -267,6 +267,15 @@ PlayerSettingsBox:AddCheckbox("Noclip", {
     end,
 })
 
+PlayerSettingsBox:AddCheckbox("InfiniteJump", {
+    Text = "Infinite Jump",
+    Tooltip = "Allows you to jump infinitely in the air",
+    Default = false,
+    Callback = function(v)
+        getgenv().SetInfiniteJumpEnabled(v)
+    end,
+})
+
 PlayerSettingsBox:AddCheckbox("CameraFOVEnabled", {
     Text = "Enable Camera FOV",
     Tooltip = "Enables custom camera FOV, otherwise uses the game's default",
