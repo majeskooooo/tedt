@@ -996,13 +996,12 @@ GunModTab:AddCheckbox("FastFirerate", {
     end,
 })
 
-GunModTab:AddDivider()
-
-GunModTab:AddCheckbox("NoSpread", {
-    Text = "No Spread",
+GunModTab:AddCheckbox("AutoReload", {
+    Text = "Auto Reload",
+    Tooltip = "Automatically reloads the weapon when ammo reaches 0",
     Default = false,
     Callback = function(v)
-        getgenv().SetNoSpreadEnabled(v)
+        getgenv().SetAutoReloadEnabled(v)
     end,
 })
 
