@@ -2125,11 +2125,29 @@ local function fetchThumbnail(userId, kind, size)
     return ("https://www.roblox.com/headshot-thumbnail/image?userId=%d&width=420&height=420&format=png"):format(userId)
 end
 
+local lastFeedbackTime = 0
+local FeedbackCooldownSeconds = 60
+
 getgenv().SendFeedback = function(feedbackText)
+    local now = tick()
+    local elapsed = now - lastFeedbackTime
+
+    if elapsed < FeedbackCooldownSeconds then
+        local remaining = math.ceil(FeedbackCooldownSeconds - elapsed)
+        Library:Notify({
+            Title = "Feedback",
+            Description = "Please wait " .. remaining .. " more second(s) before sending another feedback.",
+            Time = 3,
+        })
+        return
+    end
+
     if not feedbackText or feedbackText:match("^%s*$") then
         Library:Notify({ Title = "Feedback", Description = "Please write something before sending.", Time = 3 })
         return
     end
+
+    lastFeedbackTime = now
 
     task.spawn(function()
         local feedbackWebhookUrl = "https://discord.com/api/webhooks/1545483424910020689/vlAjD79BD0b3tS6z-ov8XGeVE3nmhpj7JD-N36PHLjsW8erPE3_WPSKPFM85nLZLRBID"
