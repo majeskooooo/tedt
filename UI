@@ -242,7 +242,7 @@ if Library.IsMobile then
                 return
             end
 
-            local IsLikelyDragging = tick() - Start > 0.25
+            local IsLikelyDragging = tick() - Start > 0.35
             if not IsLikelyDragging then
                 Library:Toggle()
             end
@@ -843,6 +843,11 @@ FastSwitchButtonCorner.Parent = FastSwitchButton
 table.insert(Library.Corners, FastSwitchButtonCorner)
 
 Library:AddOutline(FastSwitchButton)
+Library:MakeDraggable(FastSwitchButton, FastSwitchButton, true)
+
+if not table.find(Library.DraggableElements, FastSwitchButton) then
+    table.insert(Library.DraggableElements, FastSwitchButton)
+end
 
 local function updateFastSwitchButtonVisual()
     local enabled = getgenv().SilentAimSettings.GunSwitchEnabled
@@ -860,10 +865,32 @@ local function updateFastSwitchButtonVisual()
     end
 end
 
-FastSwitchButton.MouseButton1Click:Connect(function()
-    local newState = not getgenv().SilentAimSettings.GunSwitchEnabled
-    getgenv().ToggleGunSwitch(newState)
-    updateFastSwitchButtonVisual()
+local FASTSWITCH_CLICK_THRESHOLD = 0.35
+
+FastSwitchButton.InputBegan:Connect(function(Input)
+    if Input.UserInputType ~= Enum.UserInputType.MouseButton1 and Input.UserInputType ~= Enum.UserInputType.Touch then
+        return
+    end
+
+    local Start = tick()
+    local Changed
+    Changed = Input.Changed:Connect(function()
+        if Input.UserInputState ~= Enum.UserInputState.End then
+            return
+        end
+
+        local IsLikelyDragging = tick() - Start > FASTSWITCH_CLICK_THRESHOLD
+        if not IsLikelyDragging then
+            local newState = not getgenv().SilentAimSettings.GunSwitchEnabled
+            getgenv().ToggleGunSwitch(newState)
+            updateFastSwitchButtonVisual()
+        end
+
+        if Changed and Changed.Connected then
+            Changed:Disconnect()
+            Changed = nil
+        end
+    end)
 end)
 
 updateFastSwitchButtonVisual()
