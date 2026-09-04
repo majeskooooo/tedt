@@ -1087,6 +1087,30 @@ autoShootParams.CollisionGroup = "ClientBullet"
 
 local lastAutoShot = 0
 
+local function updateAmmoLabel(weapon, currentAmmo)
+    local ok, gunFrame = pcall(function()
+        return player.PlayerGui:WaitForChild("Home", 3)
+            :WaitForChild("hud", 3)
+            :WaitForChild("BottomRightFrame", 3)
+            :WaitForChild("GunFrame", 3)
+    end)
+    if not ok or not gunFrame then return end
+
+    local bulletsLabel = gunFrame:FindFirstChild("BulletsLabel")
+    if not bulletsLabel then return end
+
+    local behavior = weapon:GetAttribute("Behavior")
+    if behavior == "Sniper" then
+        local stored = weapon:GetAttribute("StoredAmmo") or 0
+        bulletsLabel.Text = currentAmmo .. " | " .. stored
+    else
+        local maxAmmo = weapon:GetAttribute("MaxAmmo") or currentAmmo
+        bulletsLabel.Text = currentAmmo .. "/" .. maxAmmo
+    end
+end
+
+local function castPelletRay(weapon, origin, aimPoint, spreadRadius)
+
 local function castPelletRay(weapon, origin, aimPoint, spreadRadius)
     local roll = math.random()
     local behavior = weapon:GetAttribute("Behavior")
@@ -1157,7 +1181,9 @@ local function performAutoShot(weapon)
 
     shootRemote:FireServer(bulletData)
 
-    weapon:SetAttribute("Local_CurrentAmmo", currentAmmo - 1)
+    local newAmmo = currentAmmo - 1
+    weapon:SetAttribute("Local_CurrentAmmo", newAmmo)
+    updateAmmoLabel(weapon, newAmmo)
 
     pcall(function()
         local handle = weapon:FindFirstChild("Handle")
