@@ -820,60 +820,52 @@ RunService.RenderStepped:Connect(function()
 end)
 
 -- ============ NOCLIP ============
-local PhysicsService = game:GetService("PhysicsService")
-local NOCLIP_GROUP = "KayenNoclip"
+-- Bypassa o watcher CharacterCollision do jogo, que força o CanCollide
+-- do Head (e possivelmente outras parts) de volta pra true sempre que
+-- é mudado. Sem isso, o noclip é desfeito instantaneamente.
+pcall(function()
+    local hook = newcclosure(function() end)
+    for _, obj in next, getgc(false) do
+        if typeof(obj) == "function" then
+            local ok, source = pcall(debug.info, obj, "s")
+            if ok and source and source:find("CharacterCollision") then
+                pcall(hookfunction, obj, hook)
+            end
+        end
+    end
+end)
 
-pcall(function()
-    PhysicsService:RegisterCollisionGroup(NOCLIP_GROUP)
-end)
-pcall(function()
-    PhysicsService:CreateCollisionGroup(NOCLIP_GROUP) 
-end)
-pcall(function()
-    PhysicsService:CollisionGroupSetCollidable(NOCLIP_GROUP, "Default", false)
-end)
-pcall(function()
-    PhysicsService:CollisionGroupSetCollidable(NOCLIP_GROUP, NOCLIP_GROUP, false)
-end)
+local noclipConnection = nil
 
-local function setPartCollisionGroup(part, groupName)
-    pcall(function()
-        part.CollisionGroup = groupName
-    end)
-end
-
-local function applyNoclipToCharacter(char)
+local function noclipStep()
+    local char = player.Character
     if not char then return end
-    local groupName = Settings.NoclipEnabled and NOCLIP_GROUP or "Default"
     for _, part in ipairs(char:GetDescendants()) do
-        if part:IsA("BasePart") then
-            setPartCollisionGroup(part, groupName)
+        if part:IsA("BasePart") and part.CanCollide then
+            part.CanCollide = false
         end
     end
 end
 
-local function hookNoclipDescendants(char)
-    char.DescendantAdded:Connect(function(desc)
-        if desc:IsA("BasePart") then
-            setPartCollisionGroup(desc, Settings.NoclipEnabled and NOCLIP_GROUP or "Default")
-        end
-    end)
+local function startNoclip()
+    if noclipConnection then return end
+    noclipConnection = RunService.Stepped:Connect(noclipStep)
 end
 
-if player.Character then
-    applyNoclipToCharacter(player.Character)
-    hookNoclipDescendants(player.Character)
+local function stopNoclip()
+    if noclipConnection then
+        noclipConnection:Disconnect()
+        noclipConnection = nil
+    end
 end
-
-player.CharacterAdded:Connect(function(char)
-    task.wait(0.1)
-    applyNoclipToCharacter(char)
-    hookNoclipDescendants(char)
-end)
 
 getgenv().SetNoclipEnabled = function(v)
     Settings.NoclipEnabled = v == true
-    applyNoclipToCharacter(player.Character)
+    if Settings.NoclipEnabled then
+        startNoclip()
+    else
+        stopNoclip()
+    end
 end
 
 -- ============ ANTI-TASE ============
