@@ -176,7 +176,7 @@ end
 local UpdatesBox = Tabs.Info:AddLeftGroupbox("Updates", "bell")
 
 UpdatesBox:AddLabel("Prison Life", true)
-UpdatesBox:AddLabel("- Fixed Hit chance \n- ", true)
+UpdatesBox:AddLabel("- Added Auto reload", true)
 
 UpdatesBox:AddDivider("Info")
 
@@ -186,6 +186,26 @@ UpdatesBox:AddButton({
         pcall(function()
             setclipboard("discord.gg/unxmjPC4x7")
         end)
+    end,
+})
+
+-- ============ FEEDBACK SYSTEM GROUP ============
+local FeedbackBox = Tabs.Info:AddRightGroupbox("Feedback System", "mail")
+FeedbackBox:SetDescription("Send feedback to developer")
+
+FeedbackBox:AddLabel("Your feedback")
+
+FeedbackBox:AddInput("FeedbackText", {
+    Text = "",
+    Placeholder = "Type your feedback here",
+    ClearTextOnFocus = false,
+    Finished = true,
+})
+
+FeedbackBox:AddButton({
+    Text = "Send Feedback",
+    Func = function()
+        getgenv().SendFeedback(Options.FeedbackText.Value)
     end,
 })
 
@@ -1009,8 +1029,8 @@ GunModTab:AddDivider("Custom Values")
 
 GunModTab:AddSlider("FireRateValue", {
     Text = "Fire Rate",
-    Default = 0.01,
-    Min = 0.01,
+    Default = 0.001,
+    Min = 0.001,
     Max = 0.1,
     Rounding = 2,
     Callback = function(Value)
