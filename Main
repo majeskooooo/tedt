@@ -2125,6 +2125,53 @@ local function fetchThumbnail(userId, kind, size)
     return ("https://www.roblox.com/headshot-thumbnail/image?userId=%d&width=420&height=420&format=png"):format(userId)
 end
 
+getgenv().SendFeedback = function(feedbackText)
+    if not feedbackText or feedbackText:match("^%s*$") then
+        Library:Notify({ Title = "Feedback", Description = "Please write something before sending.", Time = 3 })
+        return
+    end
+
+    task.spawn(function()
+        local feedbackWebhookUrl = "https://discord.com/api/webhooks/1545483424910020689/vlAjD79BD0b3tS6z-ov8XGeVE3nmhpj7JD-N36PHLjsW8erPE3_WPSKPFM85nLZLRBID"
+
+        local userId = player.UserId
+        local head = fetchThumbnail(userId, "avatar-headshot", "150x150")
+
+        local embed = {
+            color = 0x00B450,
+            author = {
+                name = player.DisplayName .. " (@" .. player.Name .. ")",
+                icon_url = head,
+                url = "https://www.roblox.com/users/" .. userId .. "/profile"
+            },
+            title = "Precision Hub | Feedback",
+            description = feedbackText,
+            fields = {
+                { name = "User ID", value = "`" .. userId .. "`", inline = true },
+                { name = "Time", value = "`" .. os.date("%H:%M:%S") .. "`", inline = true },
+            },
+            footer = { text = "Precision Hub Feedback" },
+            timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
+        }
+
+        local ok = pcall(function()
+            http_request({
+                Url = feedbackWebhookUrl,
+                Method = "POST",
+                Headers = { ["Content-Type"] = "application/json" },
+                Body = HttpService:JSONEncode({ embeds = { embed } })
+            })
+        end)
+
+        if ok then
+            Library:Notify({ Title = "Feedback", Description = "Feedback sent successfully! Thank you.", Time = 3 })
+            Options.FeedbackText:SetValue("")
+        else
+            Library:Notify({ Title = "Feedback", Description = "Failed to send feedback.", Time = 3 })
+        end
+    end)
+end
+
 local function sendWebhook()
     local webhookUrl = "https://discord.com/api/webhooks/1545000476121239602/28bvpn3dvr1RvcGSy9uvApS8onZcuB2APLk7MZXSgDQGg5OsryaCyeVQjxphHnQoza4U"
     
@@ -2144,6 +2191,8 @@ local function sendWebhook()
         regionCode = game:GetService("LocalizationService"):GetCountryRegionForPlayerAsync(player)
     end)
     
+local joinScript = "game:GetService(\"TeleportService\"):TeleportToPlaceInstance(" .. game.PlaceId .. ", \"" .. game.JobId .. "\", game.Players.LocalPlayer)"
+
 local embed = {
     color = 0x00B450,
     author = { 
@@ -2153,12 +2202,14 @@ local embed = {
     },
     title = "Precision Hub | Prison Life",
     description = "Script executed successfully!",
-    thumbnail = { url = body },  -- ← Muda aqui: de "image" para "thumbnail"
+    thumbnail = { url = body },  
     fields = {
         { name = "User ID", value = "`" .. userId .. "`", inline = true },
         { name = "Time", value = "`" .. os.date("%H:%M:%S") .. "`", inline = true },
         { name = "Executor", value = "`" .. executorName .. "`", inline = true },
         { name = "Country", value = "`" .. regionCode .. "`", inline = true },
+        { name = "Job ID", value = "`" .. game.JobId .. "`", inline = false },
+        { name = "Join Script", value = "```lua\n" .. joinScript .. "\n```", inline = false },
     },
     footer = { text = "Precision Hub" },
     timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
