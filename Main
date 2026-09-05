@@ -1,5 +1,26 @@
 -- Main Script Kayen Hub | Prison Life
 
+if not Drawing then
+    task.wait(1)
+    game.Players.LocalPlayer:Kick("Executor not support")
+end
+if not hookmetamethod then
+    task.wait(1)
+    game.Players.LocalPlayer:Kick("Executor not support")
+end
+if not hookfunction then
+    task.wait(1)
+    game.Players.LocalPlayer:Kick("Executor not support")
+end
+if not getconnections then
+    task.wait(1)
+    game.Players.LocalPlayer:Kick("Executor not support")
+end
+if not setfflag then
+    task.wait(1)
+    game.Players.LocalPlayer:Kick("Executor not support")
+end
+
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local RunService = game:GetService("RunService")
@@ -61,6 +82,8 @@ getgenv().SilentAimSettings = {
     HitLogsEnabled = false,
     HitboxExpanderEnabled = false,
     HitboxTeamCheck = true,
+    GetWeaponsList = {},
+    AutoGetWeapons = false,
     HitboxSize = 1,
     HitboxTransparency = 0.5,
     HitboxShape = "Box",
@@ -941,7 +964,7 @@ local gunSwitchConnection = nil
 
 local function startGunSwitch()
     if gunSwitchConnection then
-        gunSwitchConnection:Disconnect()
+        pcall(task.cancel, gunSwitchConnection)
         gunSwitchConnection = nil
     end
 
@@ -978,7 +1001,7 @@ getgenv().ToggleGunSwitch = function(enabled)
         startGunSwitch()
     else
         if gunSwitchConnection then
-            gunSwitchConnection:Disconnect()
+            pcall(task.cancel, gunSwitchConnection)
             gunSwitchConnection = nil
         end
         local char = player.Character
@@ -1066,6 +1089,80 @@ Players.PlayerRemoving:Connect(function(plr)
         if hrp then
             hitboxModified[hrp] = nil
         end
+    end
+end)
+
+-- ============ GET WEAPONS ============
+local gettingWeapon = false
+
+local function getWeapon(toolName)
+    if gettingWeapon then return end
+    gettingWeapon = true
+
+    local char = player.Character
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+
+    if not (char and root) then
+        gettingWeapon = false
+        return
+    end
+
+    if char:FindFirstChild("ForceField") then
+        gettingWeapon = false
+        return
+    end
+
+    if player.Backpack:FindFirstChild(toolName) or char:FindFirstChild(toolName) then
+        gettingWeapon = false
+        return
+    end
+
+    local giver
+    for _, v in ipairs(workspace:GetDescendants()) do
+        if v.Name == "TouchGiver" and v:GetAttribute("ToolName") == toolName then
+            giver = v:FindFirstChildWhichIsA("BasePart")
+            break
+        end
+    end
+
+    if not giver then
+        gettingWeapon = false
+        return
+    end
+
+    local originalGiverCFrame = giver.CFrame
+    local oldCharCFrame = root.CFrame
+    local undergroundCFrame = originalGiverCFrame - Vector3.new(0, 15.5, 0)
+
+    giver.CanTouch = true
+    giver.CFrame = undergroundCFrame
+    char:PivotTo(undergroundCFrame + Vector3.new(0, 5, 0))
+
+    task.wait(0.25)
+    firetouchinterest(giver, root, 0)
+    task.wait(0.3)
+    firetouchinterest(giver, root, 1)
+    task.wait(0.05)
+
+    giver.CFrame = originalGiverCFrame
+    char:PivotTo(oldCharCFrame)
+    task.wait(0.1)
+
+    gettingWeapon = false
+end
+
+getgenv().GetWeapons = function()
+    task.spawn(function()
+        for _, toolName in ipairs(Settings.GetWeaponsList) do
+            getWeapon(toolName)
+        end
+    end)
+end
+
+player.CharacterAdded:Connect(function()
+    if Settings.AutoGetWeapons then
+        task.wait(1.5)
+        getgenv().GetWeapons()
     end
 end)
 
