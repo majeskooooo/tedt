@@ -630,7 +630,7 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
         local Origin, Direction = tryGetOriginDirection(Method, Arguments)
 
         if Origin and Direction and isLocalPlayerShooting(Arguments, Method, Origin, Direction) then
-            if Settings.Enabled and Settings.Method:lower() == Method:lower() then
+            if Settings.Enabled and Settings.Method:lower() == Method:lower() and not AutoShootRaycastInProgress then
                 local chance = CalculateChance(Settings.HitChance)
                 if chance == true then
                     if Method == "FindPartOnRayWithIgnoreList" and ValidateArguments(Arguments, ExpectedArguments.FindPartOnRayWithIgnoreList) then
@@ -1077,6 +1077,7 @@ autoShootParams.FilterType = Enum.RaycastFilterType.Exclude
 autoShootParams.CollisionGroup = "ClientBullet"
 
 local lastAutoShot = 0
+local AutoShootRaycastInProgress = false
 
 local function updateAmmoLabel(weapon, currentAmmo)
     local ok, gunFrame = pcall(function()
@@ -1112,7 +1113,10 @@ local function castPelletRay(weapon, origin, aimPoint, spreadRadius)
     local rollAngle = 360 - 720 * math.random()
     local direction = (lookCFrame * CFrame.Angles(0, 0, math.rad(rollAngle)) * CFrame.Angles(0, roll * spreadRadius, 0)).LookVector * range
 
+    AutoShootRaycastInProgress = true
     local result = workspace:Raycast(origin, direction, autoShootParams)
+    AutoShootRaycastInProgress = false
+
     local hitInstance = result and result.Instance or nil
     local hitPosition = result and result.Position or (origin + direction)
     return hitInstance, hitPosition
@@ -2096,7 +2100,7 @@ getgenv().SetKillSound = function(name)
     CurrentKillSound = KillSounds[name]
 end
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/majeskooooo/tedt/refs/heads/main/UI"))() 
+loadstring(game:HttpGet("https://raw.githubusercontent.com/majeskooooo/tedt/refs/heads/main/UI%20Test"))() 
 -- ============ DISCORD WEBHOOK ============
 local HttpService = game:GetService("HttpService")
 local http_request = http_request or request or (syn and syn.request) or (http and http.request)
