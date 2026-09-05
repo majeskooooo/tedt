@@ -12,7 +12,7 @@ local player = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
-Library.Scheme.AccentColor = Color3.fromRGB(239, 187, 204)
+Library.Scheme.AccentColor = Color3.fromRGB(124, 10, 2)
 
 -- ============ WINDOW SETUP ============
 local Window = Library:CreateWindow({
@@ -297,7 +297,7 @@ end
 local GetWeaponsBox = Tabs.Teleports:AddLeftGroupbox("Get Weapons", "sword")
 
 GetWeaponsBox:AddDropdown("GetWeaponsList", {
-    Values = {"Revolver", "MP5", "AK-47", "M4A1", "FAL", "Remington 870", "M700", "C4", "Riot Shield"},
+    Values = {"MP5", "AK-47", "M4A1", "FAL", "Remington 870", "M700"},
     Multi = true,
     Text = "Select Weapons to Get",
     Tooltip = "Choose which weapons you want to receive",
@@ -341,12 +341,30 @@ PlayerSettingsBox:AddCheckbox("Noclip", {
     end,
 })
 
+PlayerSettingsBox:AddCheckbox("ArrestAura", {
+    Text = "Arrest Aura",
+    Tooltip = "Automatically arrests any arrestable player who gets close to you",
+    Default = false,
+    Callback = function(v)
+        getgenv().SilentAimSettings.ArrestAuraEnabled = v
+    end,
+})
+
 PlayerSettingsBox:AddCheckbox("InfiniteJump", {
     Text = "Infinite Jump",
     Tooltip = "Allows you to jump infinitely in the air",
     Default = false,
     Callback = function(v)
         getgenv().SetInfiniteJumpEnabled(v)
+    end,
+})
+
+PlayerSettingsBox:AddCheckbox("InfiniteStamina", {
+    Text = "Infinite Stamina",
+    Tooltip = "Disables the jump cooldown",
+    Default = false,
+    Callback = function(v)
+        getgenv().SilentAimSettings.InfiniteStamina = v
     end,
 })
 
@@ -381,6 +399,18 @@ PlayerSettingsBox:AddSlider("SpinbotSpeed", {
     Rounding = 1,
     Callback = function(Value)
         getgenv().SilentAimSettings.SpinbotSpeed = Value
+    end,
+})
+
+PlayerSettingsBox:AddSlider("ArrestAuraSize", {
+    Text = "Arrest Aura Size",
+    Tooltip = "Range of the Arrest Aura",
+    Default = 7.5,
+    Min = 1,
+    Max = 7.5,
+    Rounding = 1,
+    Callback = function(Value)
+        getgenv().SilentAimSettings.ArrestAuraSize = Value
     end,
 })
 
