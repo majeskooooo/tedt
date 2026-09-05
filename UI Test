@@ -293,6 +293,42 @@ if Library.IsMobile then
     end)
 end
 
+-- ============ GET WEAPONS ============
+local GetWeaponsBox = Tabs.Teleports:AddLeftGroupbox("Get Weapons", "sword")
+
+GetWeaponsBox:AddDropdown("GetWeaponsList", {
+    Values = {"M9", "Revolver", "MP5", "AK-47", "M4A1", "FAL", "Remington 870", "M700"},
+    Multi = true,
+    Text = "Select Weapons to Get",
+    Tooltip = "Choose which weapons you want to receive",
+    Callback = function(Value)
+        local list = {}
+        for name, selected in pairs(Value or {}) do
+            if selected then
+                table.insert(list, name)
+            end
+        end
+        getgenv().SilentAimSettings.GetWeaponsList = list
+    end,
+})
+
+GetWeaponsBox:AddCheckbox("AutoGetWeapons", {
+    Text = "Auto get Weapons",
+    Default = false,
+    Callback = function(v)
+        getgenv().SilentAimSettings.AutoGetWeapons = v
+    end,
+})
+
+GetWeaponsBox:AddButton({
+    Text = "Get Weapons",
+    Func = function()
+        if getgenv().GetWeapons then
+            getgenv().GetWeapons()
+        end
+    end,
+})
+
 -- ============ PLAYERS TAB ============
 local PlayerSettingsBox = Tabs.Teleports:AddLeftGroupbox("Misc", "sliders")
 
@@ -1010,6 +1046,14 @@ GunSwitcherBox:AddLabel("Fast Switch Keybind"):AddKeyPicker("FastSwitchKeybind",
         updateFastSwitchButtonVisual()
     end,
 })
+
+task.spawn(function()
+    while true do
+        task.wait(0.1)
+        local keyValue = Options.FastSwitchKeybind.Value
+        getgenv().SilentAimSettings.FastSwitchKeyCode = keyValue
+    end
+end)
 
 -- ============ WEAPON MODIFICATIONS (TABBOX) ============
 local WeaponModBox = Tabs.Aimbot:AddRightGroupbox("Weapon Mod", "sword")
