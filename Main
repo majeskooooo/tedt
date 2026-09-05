@@ -655,6 +655,20 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
     local Arguments = {...}
     local self = Arguments[1]
 
+    if shootRemote and self == shootRemote and Method == "FireServer" and not checkcaller() then
+        local bulletData = Arguments[2]
+        local firstPellet = type(bulletData) == "table" and bulletData[1] or nil
+        local hitInstance = firstPellet and firstPellet[3] or nil
+
+        local success, validInstance = pcall(function()
+            return hitInstance and typeof(hitInstance) == "Instance" and hitInstance.Parent and hitInstance.Name ~= "" and hitInstance
+        end)
+
+        if success and validInstance then
+            registerHit(validInstance)
+        end
+    end
+
     if self == workspace and not checkcaller() then
         local Origin, Direction = tryGetOriginDirection(Method, Arguments)
 
@@ -679,7 +693,6 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
             end
 
             local rets = table.pack(oldNamecall(unpack(Arguments)))
-            registerHit(rets[1])
             return table.unpack(rets, 1, rets.n)
         end
     end
@@ -1194,8 +1207,10 @@ local function isArrestable(plr)
         return true
     end
 
-    local displayName = humanoid.DisplayName
-    if displayName:find("🔗", 1, true) or displayName:find("💢", 1, true) then
+    local hostile = plr.Character:GetAttribute("Hostile")
+    local trespass = plr.Character:GetAttribute("Trespassing")
+
+    if hostile or trespass then
         return true
     end
 
@@ -1336,7 +1351,6 @@ local function performAutoShot(weapon)
 
     for i = 1, projectileCount do
         local hitInstance, hitPosition = castPelletRay(weapon, origin, aimPoint, spreadRadius)
-        registerHit(hitInstance)
         table.insert(bulletData, { origin, hitPosition, hitInstance })
 
         if AutoShootGunTracers then
