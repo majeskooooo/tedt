@@ -12,7 +12,7 @@ local player = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
-Library.Scheme.AccentColor = Color3.fromRGB(124, 10, 2)
+Library.Scheme.AccentColor = Color3.fromRGB(147, 197, 114)
 
 -- ============ WINDOW SETUP ============
 local Window = Library:CreateWindow({
