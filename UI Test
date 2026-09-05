@@ -17,7 +17,7 @@ Library.Scheme.AccentColor = Color3.fromRGB(239, 187, 204)
 -- ============ WINDOW SETUP ============
 local Window = Library:CreateWindow({
     Title = "",
-    Footer = "Version 0.6.4 | by 2knw",
+    Footer = "Version 0.6.5 | by 2knw",
     Icon = 74169651953690,
     NotifySide = "Right",
     ShowCustomCursor = true,
@@ -176,7 +176,7 @@ end
 local UpdatesBox = Tabs.Info:AddLeftGroupbox("Updates", "bell")
 
 UpdatesBox:AddLabel("Prison Life", true)
-UpdatesBox:AddLabel("- Added Auto reload", true)
+UpdatesBox:AddLabel("- Added Auto reload\n- Added JobId to Logs\n- Added Feedback System", true)
 
 UpdatesBox:AddDivider("Info")
 
@@ -600,6 +600,15 @@ AimbotLeftBox:AddCheckbox("ForceFieldCheck", {
         getgenv().SilentAimSettings.ForceFieldCheck = v
     end,
 })
+
+local AutoshootWarningLabel = AimbotLeftBox:AddLabel("Note: Autoshot is not compatible with Hitchance", true)
+
+do
+    local warningInstance = AutoshootWarningLabel.Holder and AutoshootWarningLabel.Holder:FindFirstChildOfClass("TextLabel")
+    if warningInstance then
+        warningInstance.TextColor3 = Color3.fromRGB(235, 70, 70)
+    end
+end
 
 AimbotLeftBox:AddDivider()
 
