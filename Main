@@ -84,6 +84,9 @@ getgenv().SilentAimSettings = {
     HitboxTeamCheck = true,
     GetWeaponsList = {},
     AutoGetWeapons = false,
+    InfiniteStamina = false,
+    ArrestAuraEnabled = false,
+    ArrestAuraSize = 7.5,
     HitboxSize = 1,
     HitboxTransparency = 0.5,
     HitboxShape = "Box",
@@ -1163,6 +1166,59 @@ player.CharacterAdded:Connect(function()
     if Settings.AutoGetWeapons then
         task.wait(1.5)
         getgenv().GetWeapons()
+    end
+end)
+
+-- ============ INFINITE STAMINA ============
+RunService.Heartbeat:Connect(function()
+    local char = player.Character
+    if not char then return end
+    local antiJump = char:FindFirstChild("AntiJump")
+    if antiJump then
+        antiJump.Disabled = Settings.InfiniteStamina
+    end
+end)
+
+-- ============ ARREST AURA ============
+local arrestRemote = nil
+pcall(function()
+    arrestRemote = ReplicatedStorage:WaitForChild("Remotes", 5):WaitForChild("ArrestPlayer", 5)
+end)
+
+local function isArrestable(plr)
+    if not plr.Character then return false end
+    local humanoid = plr.Character:FindFirstChild("Humanoid")
+    if not humanoid or humanoid.Health <= 0 then return false end
+
+    if plr.Team and plr.Team.Name == "Criminals" then
+        return true
+    end
+
+    local displayName = humanoid.DisplayName
+    if displayName:find("🔗", 1, true) or displayName:find("💢", 1, true) then
+        return true
+    end
+
+    return false
+end
+
+task.spawn(function()
+    while true do
+        task.wait(0.2)
+        if arrestRemote and Settings.ArrestAuraEnabled then
+            local myChar = player.Character
+            local myRoot = myChar and myChar:FindFirstChild("HumanoidRootPart")
+            if myRoot then
+                for _, plr in ipairs(Players:GetPlayers()) do
+                    if plr ~= player and plr.Character and isArrestable(plr) then
+                        local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
+                        if hrp and (myRoot.Position - hrp.Position).Magnitude <= Settings.ArrestAuraSize then
+                            arrestRemote:InvokeServer(plr)
+                        end
+                    end
+                end
+            end
+        end
     end
 end)
 
