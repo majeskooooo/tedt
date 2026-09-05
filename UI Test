@@ -297,7 +297,7 @@ end
 local GetWeaponsBox = Tabs.Teleports:AddLeftGroupbox("Get Weapons", "sword")
 
 GetWeaponsBox:AddDropdown("GetWeaponsList", {
-    Values = {"M9", "Revolver", "MP5", "AK-47", "M4A1", "FAL", "Remington 870", "M700"},
+    Values = {"Revolver", "MP5", "AK-47", "M4A1", "FAL", "Remington 870", "M700", "C4", "Riot Shield"},
     Multi = true,
     Text = "Select Weapons to Get",
     Tooltip = "Choose which weapons you want to receive",
