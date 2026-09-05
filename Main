@@ -252,7 +252,10 @@ end
 local function updateFOVPosition()
     if not fovCircle then return end
     fovCircle.AnchorPoint = Vector2.new(0.5, 0.5)
-    if UserInputService.TouchEnabled then
+
+    local usingTouch = UserInputService:GetLastInputType() == Enum.UserInputType.Touch
+
+    if usingTouch then
         fovCircle.Position = UDim2.new(0.5, 0, 0.5, 0)
     else
         fovCircle.Position = UDim2.new(0, mouse.X, 0, mouse.Y)
@@ -934,33 +937,50 @@ function setAntiTaseEnabled(enabled)
 end
 
 -- ============ GUN SWITCHER ============
-task.spawn(function()
-    while true do
-        task.wait(0.1)
-        if not Settings.GunSwitchEnabled or #Settings.GunSwitchList == 0 then continue end
+local gunSwitchConnection = nil
 
-        local char = player.Character
-        if not char or not char:FindFirstChild("Humanoid") or char.Humanoid.Health <= 0 then
-            continue
-        end
-
-        local humanoid = char.Humanoid
-
-        for _, weaponName in ipairs(Settings.GunSwitchList) do
-            if not Settings.GunSwitchEnabled then break end
-            local weapon = player.Backpack:FindFirstChild(weaponName)
-            if weapon then
-                humanoid:EquipTool(weapon)
-            end
-            task.wait(Settings.GunSwitchDelay)
-        end
+local function startGunSwitch()
+    if gunSwitchConnection then
+        gunSwitchConnection:Disconnect()
+        gunSwitchConnection = nil
     end
-end)
+
+    gunSwitchConnection = task.spawn(function()
+        while Settings.GunSwitchEnabled do
+            task.wait(0.1)
+            if not Settings.GunSwitchEnabled or #Settings.GunSwitchList == 0 then continue end
+
+            local char = player.Character
+            if not char or not char:FindFirstChild("Humanoid") or char.Humanoid.Health <= 0 then
+                continue
+            end
+
+            local humanoid = char.Humanoid
+
+            for _, weaponName in ipairs(Settings.GunSwitchList) do
+                if not Settings.GunSwitchEnabled then break end
+                local weapon = player.Backpack:FindFirstChild(weaponName)
+                if weapon then
+                    pcall(function()
+                        humanoid:EquipTool(weapon)
+                    end)
+                end
+                task.wait(Settings.GunSwitchDelay)
+            end
+        end
+    end)
+end
 
 getgenv().ToggleGunSwitch = function(enabled)
     Settings.GunSwitchEnabled = enabled == true
 
-    if not Settings.GunSwitchEnabled then
+    if Settings.GunSwitchEnabled then
+        startGunSwitch()
+    else
+        if gunSwitchConnection then
+            gunSwitchConnection:Disconnect()
+            gunSwitchConnection = nil
+        end
         local char = player.Character
         local humanoid = char and char:FindFirstChildOfClass("Humanoid")
         if humanoid then
@@ -968,6 +988,13 @@ getgenv().ToggleGunSwitch = function(enabled)
         end
     end
 end
+
+player.CharacterAdded:Connect(function()
+    if Settings.GunSwitchEnabled then
+        task.wait(0.1)
+        startGunSwitch()
+    end
+end)
 
 -- ============ HITBOX EXPANDER ============
 local hitboxModified = {}
@@ -1233,6 +1260,9 @@ end)
 -- ============ KEYBINDS ============
 UserInputService.InputBegan:Connect(function(input, processed)
     if processed then return end
+    if Settings.FastSwitchKeyCode and input.KeyCode == Settings.FastSwitchKeyCode then
+        return
+    end
     if input.KeyCode == Enum.KeyCode.E or input.KeyCode == Enum.KeyCode.LeftControl then
         Settings.Enabled = not Settings.Enabled
         if fovCircle then fovCircle.Visible = Settings.Enabled and Settings.FOVEnabled end
