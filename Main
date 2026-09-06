@@ -94,6 +94,7 @@ getgenv().SilentAimSettings = {
     ESPTextColor = Color3.fromRGB(255, 255, 255),
     ESPTargetTextColor = Color3.fromRGB(255, 182, 255),
     ESPTargetNameEnabled = false,
+    TargetCustomText = "Target",
     ESPNameTextSize = 12,
     ESPTargetNameTextSize = 12,
 }
@@ -819,7 +820,7 @@ local function ensureTargetNameTag(head)
         label.Name = "TargetLabel"
         label.BackgroundTransparency = 1
         label.Size = UDim2.new(1, 0, 1, 0)
-        label.Text = "Target"
+        label.Text = Settings.TargetCustomText or "Target"
         label.Font = Enum.Font.GothamBold
         label.TextStrokeTransparency = 0
         label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
@@ -847,10 +848,33 @@ local function updateTargetNameTag(targetPlayer)
         if label then
             label.TextColor3 = Settings.ESPTargetTextColor or Color3.fromRGB(255, 182, 255)
             label.TextSize = Settings.ESPTargetNameTextSize or 12
+            label.Text = Settings.TargetCustomText or "Target"
         end
     else
         local billboard = head:FindFirstChild("ESPTargetNameTag")
         if billboard then billboard:Destroy() end
+    end
+end
+
+getgenv().SetTargetCustomText = function(text)
+    if not text or text == "" then
+        text = "Target"
+    end
+    Settings.TargetCustomText = text
+
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr.Character then
+            local head = plr.Character:FindFirstChild("Head")
+            if head then
+                local billboard = head:FindFirstChild("ESPTargetNameTag")
+                if billboard then
+                    local label = billboard:FindFirstChild("TargetLabel")
+                    if label then
+                        label.Text = text
+                    end
+                end
+            end
+        end
     end
 end
 
@@ -2329,7 +2353,7 @@ function applyESP(plr)
             billboard = Instance.new("BillboardGui", head)
             billboard.Name = "ESPNameTag"
             billboard.Size = UDim2.new(0, 200, 0, 30)
-            billboard.StudsOffset = Vector3.new(0, 2, 0)
+            billboard.StudsOffset = Vector3.new(0, 2.5, 0)
             billboard.AlwaysOnTop = true
             local label = Instance.new("TextLabel", billboard)
             label.Name = "NameLabel"
