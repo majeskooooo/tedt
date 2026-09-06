@@ -12,12 +12,12 @@ local player = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
-Library.Scheme.AccentColor = Color3.fromRGB(147, 197, 114)
+Library.Scheme.AccentColor = Color3.fromRGB(135, 206, 250)
 
 -- ============ WINDOW SETUP ============
 local Window = Library:CreateWindow({
     Title = "",
-    Footer = "Version 0.6.5 | by 2knw",
+    Footer = "Precision Hub V0.6.5 | by 2knw",
     Icon = 74169651953690,
     NotifySide = "Right",
     ShowCustomCursor = true,
@@ -34,8 +34,8 @@ local Window = Library:CreateWindow({
 local Tabs = {
     Info = Window:AddTab("Info", "info", "Game info"),
     Aimbot = Window:AddTab("Main", "crosshair", "Core features"),
-    Visuals = Window:AddTab("Visuals", "eye", "ESP, tracers and visual customization"),
     Teleports = Window:AddTab("Weapons & Shop", "shopping-basket", "Teleports and Weapons"),
+    Visuals = Window:AddTab("Visuals", "eye", "ESP and Visual Customization"),
     ["UI Settings"] = Window:AddTab("UI Settings", "settings", "Customize the UI behavior and appearance"),
 }
 
@@ -1451,6 +1451,44 @@ NameESPBox:AddSlider("TargetNameESPTextSize", {
     Rounding = 0,
     Callback = function(Value)
         getgenv().SilentAimSettings.ESPTargetNameTextSize = Value
+    end,
+})
+
+NameESPBox:AddDivider()
+
+NameESPBox:AddInput("TargetCustomText", {
+    Text = "",
+    Placeholder = "Target",
+    ClearTextOnFocus = false,
+    Finished = false,
+})
+
+do
+    local holder = Options.TargetCustomText.Holder
+    local box = holder and holder:FindFirstChildOfClass("TextBox")
+    if box then
+        box:GetPropertyChangedSignal("Text"):Connect(function()
+            Options.TargetCustomText.Value = box.Text
+        end)
+    end
+end
+
+NameESPBox:AddButton({
+    Text = "Reset",
+    Func = function()
+        Options.TargetCustomText:SetValue("")
+        getgenv().SetTargetCustomText("Target")
+    end,
+})
+
+NameESPBox:AddButton({
+    Text = "Apply",
+    Func = function()
+        local text = Options.TargetCustomText.Value
+        if not text or text == "" then
+            text = "Target"
+        end
+        getgenv().SetTargetCustomText(text)
     end,
 })
 
