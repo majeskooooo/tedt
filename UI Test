@@ -341,15 +341,6 @@ PlayerSettingsBox:AddCheckbox("Noclip", {
     end,
 })
 
-PlayerSettingsBox:AddCheckbox("ArrestAura", {
-    Text = "Arrest Aura",
-    Tooltip = "Automatically arrests any arrestable player who gets close to you",
-    Default = false,
-    Callback = function(v)
-        getgenv().SilentAimSettings.ArrestAuraEnabled = v
-    end,
-})
-
 PlayerSettingsBox:AddCheckbox("InfiniteJump", {
     Text = "Infinite Jump",
     Tooltip = "Allows you to jump infinitely in the air",
@@ -399,18 +390,6 @@ PlayerSettingsBox:AddSlider("SpinbotSpeed", {
     Rounding = 1,
     Callback = function(Value)
         getgenv().SilentAimSettings.SpinbotSpeed = Value
-    end,
-})
-
-PlayerSettingsBox:AddSlider("ArrestAuraSize", {
-    Text = "Arrest Aura Size",
-    Tooltip = "Range of the Arrest Aura",
-    Default = 7.5,
-    Min = 1,
-    Max = 7.5,
-    Rounding = 1,
-    Callback = function(Value)
-        getgenv().SilentAimSettings.ArrestAuraSize = Value
     end,
 })
 
@@ -545,7 +524,7 @@ EnvironmentCloudTab:AddCheckbox("CustomSkybox", {
 })
 
 EnvironmentCloudTab:AddDropdown("Skyboxes", {
-    Values = {"None", "Gray Skybox", "2knw & Donk666 Skybox", "Snow Skybox", "Cartoon Skybox", "Lince Skybox", "Red Skybox", "Slam Skybox", "Green Eyeball Skybox", "Morioh Skybox", "Rainy Skybox"},
+    Values = {"None", "Gray Skybox", "2knw & Donk666 Skybox", "Snow Skybox", "Cartoon Skybox", "Lince Skybox", "Red Skybox", "Slam Skybox", "Green Eyeball Skybox", "Morioh Skybox", "Rainy Skybox", "Rusk1ddski Skybox"},
     Default = "None",
     Text = "Skyboxes",
     Tooltip = "Choose your skybox",
@@ -1617,6 +1596,9 @@ VehicleFlyTab:AddSlider("VehicleFlyHeight", {
 VehicleFlyTab:AddButton({
     Text = "Flip Vehicle",
     Func = function()
+        if getgenv().FlipVehicle then
+            getgenv().FlipVehicle()
+        end
     end,
 })
 
@@ -1641,7 +1623,7 @@ VehicleSpeedTab:AddSlider("VehicleMaxSpeed", {
     end,
 })
 
-VehicleCustomTab:AddDropdown("CarList", {
+local CarListDropdown = VehicleCustomTab:AddDropdown("CarList", {
     Values = {},
     Default = nil,
     AllowNull = true,
@@ -1655,19 +1637,28 @@ VehicleCustomTab:AddDropdown("CarList", {
 VehicleCustomTab:AddButton({
     Text = "Refresh List",
     Func = function()
+        if getgenv().RefreshCarList then
+            local cars = getgenv().RefreshCarList()
+            Options.CarList:SetValues(cars)
+        end
     end,
 })
 
 VehicleCustomTab:AddButton({
     Text = "Bring Car",
     Func = function()
+        if getgenv().BringCar and Options.CarList.Value then
+            getgenv().BringCar(Options.CarList.Value)
+        end
     end,
 })
-
 
 VehicleCustomTab:AddButton({
     Text = "Teleport to Car",
     Func = function()
+        if getgenv().TeleportToCar and Options.CarList.Value then
+            getgenv().TeleportToCar(Options.CarList.Value)
+        end
     end,
 })
 
