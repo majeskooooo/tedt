@@ -1389,13 +1389,68 @@ VisualsLeftBox:AddLabel("Target Highlight Color"):AddColorPicker("ESPTargetColor
     end,
 })
 
-VisualsLeftBox:AddCheckbox("HideESPNames", {
-    Text = "Hide ESP Names",
-    Tooltip = "Hides the names above players when ESP is active",
+local NameESPBox = Tabs.Visuals:AddLeftGroupbox("Name ESP", "user")
+
+NameESPBox:AddCheckbox("EnableNameESP", {
+    Text = "Enable Name ESP",
+    Tooltip = "Shows the names above players when ESP is active",
+    Default = true,
+    Callback = function(v)
+        getgenv().SilentAimSettings.ESPNamesEnabled = v
+        updateESP()
+    end,
+})
+
+NameESPBox:AddCheckbox("EnableTargetNameESP", {
+    Text = "Enable Target ESP Name",
+    Tooltip = "Shows a 'Target' label below the name of your current target",
     Default = false,
     Callback = function(v)
-        getgenv().SilentAimSettings.ESPNamesEnabled = not v
-        updateESP()
+        getgenv().SilentAimSettings.ESPTargetNameEnabled = v
+    end,
+})
+
+NameESPBox:AddLabel("Text Color"):AddColorPicker("ESPTextColor", {
+    Default = Color3.fromRGB(255, 255, 255),
+    Title = "Text Color",
+    Text = "Text Color",
+    Tooltip = "Sets the color of the Name ESP text",
+    Callback = function(Value)
+        setESPTextColor(Value)
+    end,
+})
+
+NameESPBox:AddLabel("Target Text Color"):AddColorPicker("ESPTargetTextColor", {
+    Default = Color3.fromRGB(255, 182, 255),
+    Title = "Target Text Color",
+    Text = "Target Text Color",
+    Tooltip = "Sets the color of the Target ESP Name text",
+    Callback = function(Value)
+        setESPTargetTextColor(Value)
+    end,
+})
+
+NameESPBox:AddDivider()
+
+NameESPBox:AddSlider("NameESPTextSize", {
+    Text = "Name ESP Text Size",
+    Default = 12,
+    Min = 0,
+    Max = 24,
+    Rounding = 0,
+    Callback = function(Value)
+        getgenv().SilentAimSettings.ESPNameTextSize = Value
+    end,
+})
+
+NameESPBox:AddSlider("TargetNameESPTextSize", {
+    Text = "Target Name ESP Text Size",
+    Default = 12,
+    Min = 0,
+    Max = 24,
+    Rounding = 0,
+    Callback = function(Value)
+        getgenv().SilentAimSettings.ESPTargetNameTextSize = Value
     end,
 })
 
@@ -1483,6 +1538,8 @@ ClampColorPickerToScreen("TracerColor")
 ClampColorPickerToScreen("BulletColor")
 ClampColorPickerToScreen("WeaponColor")
 ClampColorPickerToScreen("ColorScreenKillEffectColor")
+ClampColorPickerToScreen("ESPTextColor")
+ClampColorPickerToScreen("ESPTargetTextColor")
 
 -- ============ TELEPORTS TAB ============
 local TeleportsBox = Tabs.Teleports:AddRightGroupbox("Teleports", "map-pin")
