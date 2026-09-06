@@ -1,5 +1,5 @@
 -- UI Script Precision | Prison Life
-local repo = "https://raw.githubusercontent.com/maplez211/Obsidian/main/"
+local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
 local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
 local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
 local SaveManager = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
@@ -690,7 +690,7 @@ AimbotLeftBox:AddDropdown("TargetTeams", {
 
 Options.TargetTeams:SetValue({ Inmates = true, Guards = true, Criminals = true })
 
--- ============ TARGET MODE - FIXED ============
+-- ============ TARGET MODE ============
 local lastTargetModeSelection = { ["Manual"] = true }
 local updateInProgress = false
 
@@ -951,7 +951,7 @@ FOVUsersTab:AddButton({
     end,
 })
 
--- ============ FAST SWITCH BUTTON (estilizado como a Library) ============
+-- ============ FAST SWITCH BUTTON ============
 local FastSwitchOnColor = Color3.fromRGB(150, 199, 150)
 
 local FastSwitchButton = Instance.new("TextButton")
@@ -1085,7 +1085,7 @@ task.spawn(function()
     end
 end)
 
--- ============ WEAPON MODIFICATIONS (TABBOX) ============
+-- ============ WEAPON MODIFICATIONS ============
 local WeaponModBox = Tabs.Aimbot:AddRightGroupbox("Weapon Mod", "sword")
 local WeaponModsTabbox = WeaponModBox:AddTabbox()
 
@@ -1465,7 +1465,7 @@ for _, tp in ipairs(teleports) do
     })
 end
 
--- ============ TELEPORTS SCROLL DRAG FIX (UI-script only) ============
+-- ============ TELEPORTS SCROLL DRAG FIX ============
 do
     local ScrollSide = Tabs.Teleports.Sides[2] 
     local ScrollTarget = LocationsTab.Container
@@ -1566,6 +1566,48 @@ TeleportPlayerTab:AddButton({
         Options.ViewPlayer:SetValues(options)
     end,
 })
+
+-- ============ VEHICLE MOD ============
+local VehicleModBox = Tabs.Teleports:AddRightGroupbox("Vehicle Mod", "car")
+VehicleModBox:SetDescription("Vehicle Modifications")
+local VehicleModsTabbox = VehicleModBox:AddTabbox()
+
+local VehicleFlyTab = VehicleModsTabbox:AddTab(nil, "wind")
+local VehicleSpeedTab = VehicleModsTabbox:AddTab(nil, "zap")
+local VehicleCustomTab = VehicleModsTabbox:AddTab(nil, "car")
+
+VehicleFlyTab:AddCheckbox("EnableVehicleFly", {
+    Text = "Enable Vehicle Fly",
+    Default = false,
+    Callback = function(v)
+        getgenv().SilentAimSettings.VehicleFlyEnabled = v
+    end,
+})
+
+VehicleFlyTab:AddCheckbox("ShowVehicleFlyButton", {
+    Text = "Show Vehicle Fly Button",
+    Default = false,
+    Callback = function(v)
+    end,
+})
+
+VehicleFlyTab:AddLabel("Vehicle Fly Keybind"):AddKeyPicker("VehicleFlyKeybind", {
+    Default = "None",
+    NoUI = false,
+    Text = "Vehicle Fly Keybind",
+    Callback = function()
+    end,
+})
+
+VehicleFlyTab:AddDivider()
+
+VehicleFlyTab:AddButton({
+    Text = "Flip Vehicle",
+    Func = function()
+    end,
+})
+
+VehicleFlyTab:AddLabel("Sit in vehicle to Activate", true)
 
 -- ============ UI SETTINGS ============
 local MenuGroup = Tabs["UI Settings"]:AddLeftGroupbox("Menu", "settings")
