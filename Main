@@ -1244,7 +1244,6 @@ end)
 
 -- ============ AUTOSHOOT ============
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local shootRemote = nil
 pcall(function()
     local gunRemotes = ReplicatedStorage:WaitForChild("GunRemotes", 5)
     if gunRemotes then
