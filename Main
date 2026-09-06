@@ -666,13 +666,15 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
         local firstPellet = type(bulletData) == "table" and bulletData[1] or nil
         local hitInstance = firstPellet and firstPellet[3] or nil
 
-        local success, validInstance = pcall(function()
-            return hitInstance and typeof(hitInstance) == "Instance" and hitInstance.Parent and hitInstance.Name ~= "" and hitInstance
-        end)
+        task.defer(function()
+            local success, validInstance = pcall(function()
+                return hitInstance and typeof(hitInstance) == "Instance" and hitInstance.Parent and hitInstance.Name ~= "" and hitInstance
+            end)
 
-        if success and validInstance then
-            registerHit(validInstance)
-        end
+            if success and validInstance then
+                registerHit(validInstance)
+            end
+        end)
     end
 
     if self == workspace and not checkcaller() then
@@ -1974,6 +1976,10 @@ getgenv().SetKillEffectEnabled = function(v)
     Settings.KillEffectEnabled = v == true
 end
 
+getgenv().SetKillEffectColor = function(v)
+    Settings.KillEffectColor = v
+end
+
 getgenv().SetKillEffectFadeDuration = function(duration)
     Settings.KillEffectFadeDuration = duration
 end
@@ -2010,7 +2016,6 @@ local function onKillFeedEntry(entry)
     end
 
     if killerUser == player.Name then
-        task.spawn(playKillEffect)
         playKillSound()
     end
 end
