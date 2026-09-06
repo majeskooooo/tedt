@@ -1601,6 +1601,8 @@ VehicleFlyTab:AddLabel("Vehicle Fly Keybind"):AddKeyPicker("VehicleFlyKeybind", 
 
 VehicleFlyTab:AddDivider()
 
+VehicleFlyTab:AddLabel("Sit in vehicle to Activate", true)
+
 VehicleFlyTab:AddSlider("VehicleFlyHeight", {
     Text = "Height (Y)",
     Default = 0,
@@ -1617,8 +1619,6 @@ VehicleFlyTab:AddButton({
     Func = function()
     end,
 })
-
-VehicleFlyTab:AddLabel("Sit in vehicle to Activate", true)
 
 VehicleSpeedTab:AddCheckbox("VehicleMaxSpeedChanger", {
     Text = "Vehicle Max speed Changer",
@@ -1664,6 +1664,13 @@ VehicleCustomTab:AddButton({
     end,
 })
 
+
+VehicleCustomTab:AddButton({
+    Text = "Teleport to Car",
+    Func = function()
+    end,
+})
+
 local VehicleBannableWarningLabel = VehicleCustomTab:AddLabel("Bannable, use at your own risk", true)
 
 do
@@ -1672,13 +1679,6 @@ do
         warningInstance.TextColor3 = Color3.fromRGB(235, 70, 70)
     end
 end
-
-VehicleCustomTab:AddButton({
-    Text = "Teleport to Car",
-    Func = function()
-    end,
-})
-
 -- ============ UI SETTINGS ============
 local MenuGroup = Tabs["UI Settings"]:AddLeftGroupbox("Menu", "settings")
 
