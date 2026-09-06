@@ -1491,7 +1491,18 @@ local LocationsTab = TeleportsTabbox:AddTab(nil, "map-pin")
 local TeleportPlayerTab = TeleportsTabbox:AddTab(nil, "users")
 
 local teleports = {
-    {"Nexus 1", Vector3.new(864, 100, 2406)},
+    {"Cafeteria", Vector3.new(868, 100, 2263)},
+    {"Yard", Vector3.new(714, 98, 2519)},
+    {"Entrance", Vector3.new(663, 100, 2314)},
+    {"Secret Room", Vector3.new(728, 100, 2316)},
+    {"Inside the Prison", Vector3.new(864, 100, 2406)},
+    {"Guardtower", Vector3.new(840, 122, 2593)},
+    {"Guardtower 2", Vector3.new(840, 122, 2067)},
+    {"Police Room", Vector3.new(850, 100, 2274)},
+    {"Police Room 2", Vector3.new(793, 101, 2246)},
+    {"Armory", Vector3.new(804, 108, 2257)},
+    {"Containers", Vector3.new(254, 73, 2359)},
+    {"Sniper Building", Vector3.new(-354, 114, 1991)},
 }
 
 for _, tp in ipairs(teleports) do
