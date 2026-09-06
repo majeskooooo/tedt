@@ -1601,6 +1601,17 @@ VehicleFlyTab:AddLabel("Vehicle Fly Keybind"):AddKeyPicker("VehicleFlyKeybind", 
 
 VehicleFlyTab:AddDivider()
 
+VehicleFlyTab:AddSlider("VehicleFlyHeight", {
+    Text = "Height (Y)",
+    Default = 0,
+    Min = 0,
+    Max = 65,
+    Rounding = 0,
+    Callback = function(Value)
+        getgenv().SilentAimSettings.VehicleFlyHeight = Value
+    end,
+})
+
 VehicleFlyTab:AddButton({
     Text = "Flip Vehicle",
     Func = function()
@@ -1608,6 +1619,65 @@ VehicleFlyTab:AddButton({
 })
 
 VehicleFlyTab:AddLabel("Sit in vehicle to Activate", true)
+
+VehicleSpeedTab:AddCheckbox("VehicleMaxSpeedChanger", {
+    Text = "Vehicle Max speed Changer",
+    Default = false,
+    Callback = function(v)
+        getgenv().SilentAimSettings.VehicleMaxSpeedEnabled = v
+    end,
+})
+
+VehicleSpeedTab:AddDivider()
+
+VehicleSpeedTab:AddSlider("VehicleMaxSpeed", {
+    Text = "Vehicle Max Speed",
+    Default = 70,
+    Min = 70,
+    Max = 300,
+    Rounding = 0,
+    Callback = function(Value)
+        getgenv().SilentAimSettings.VehicleMaxSpeed = Value
+    end,
+})
+
+VehicleCustomTab:AddDropdown("CarList", {
+    Values = {},
+    Default = nil,
+    AllowNull = true,
+    Text = "Car List",
+    Tooltip = "Select a car",
+    Callback = function(Value)
+        getgenv().SilentAimSettings.SelectedCar = Value
+    end,
+})
+
+VehicleCustomTab:AddButton({
+    Text = "Refresh List",
+    Func = function()
+    end,
+})
+
+VehicleCustomTab:AddButton({
+    Text = "Bring Car",
+    Func = function()
+    end,
+})
+
+local VehicleBannableWarningLabel = VehicleCustomTab:AddLabel("Bannable, use at your own risk", true)
+
+do
+    local warningInstance = VehicleBannableWarningLabel.Holder and VehicleBannableWarningLabel.Holder:FindFirstChildOfClass("TextLabel")
+    if warningInstance then
+        warningInstance.TextColor3 = Color3.fromRGB(235, 70, 70)
+    end
+end
+
+VehicleCustomTab:AddButton({
+    Text = "Teleport to Car",
+    Func = function()
+    end,
+})
 
 -- ============ UI SETTINGS ============
 local MenuGroup = Tabs["UI Settings"]:AddLeftGroupbox("Menu", "settings")
