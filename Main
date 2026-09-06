@@ -563,6 +563,33 @@ local function getRedirectedDirection(Origin, OriginalDirection)
 end
 
 -- ============ HIT LOGS ============
+local deadPlayersSounded = {}
+local pendingKillChecks = {}
+
+Players.PlayerAdded:Connect(function(plr)
+    plr.CharacterAdded:Connect(function()
+        deadPlayersSounded[plr] = nil
+    end)
+end)
+
+task.spawn(function()
+    while true do
+        task.wait(0.05)
+
+        for plr in pairs(pendingKillChecks) do
+            pendingKillChecks[plr] = nil
+
+            local char = plr.Character
+            local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+
+            if humanoid and humanoid.Health <= 11 and not deadPlayersSounded[plr] then
+                deadPlayersSounded[plr] = true
+                playKillSound()
+            end
+        end
+    end
+end)
+
 local function registerHit(result)
     if not result then return end
 
@@ -590,6 +617,7 @@ local function registerHit(result)
     end
 
     playHitSound()
+    pendingKillChecks[hitPlayer] = true
 end
 
 local function isLocalPlayerShooting(Arguments, Method, Origin, OriginalDirection)
@@ -1244,6 +1272,7 @@ end)
 
 -- ============ AUTOSHOOT ============
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local shootRemote = nil
 pcall(function()
     local gunRemotes = ReplicatedStorage:WaitForChild("GunRemotes", 5)
     if gunRemotes then
@@ -2010,7 +2039,6 @@ local function onKillFeedEntry(entry)
 
     if killerUser == player.Name then
         task.spawn(playKillEffect)
-        playKillSound()
     end
 end
 
