@@ -1658,6 +1658,10 @@ UserInputService.InputBegan:Connect(function(input, processed)
     if Settings.FastSwitchKeyCode and input.KeyCode == Settings.FastSwitchKeyCode then
         return
     end
+    if Settings.VehicleFlyKeyCode and input.KeyCode == Settings.VehicleFlyKeyCode then
+        Settings.VehicleFlyEnabled = not Settings.VehicleFlyEnabled
+        return
+    end
     if input.KeyCode == Enum.KeyCode.E or input.KeyCode == Enum.KeyCode.LeftControl then
         Settings.Enabled = not Settings.Enabled
         if fovCircle then fovCircle.Visible = Settings.Enabled and Settings.FOVEnabled end
