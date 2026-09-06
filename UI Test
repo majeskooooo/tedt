@@ -1005,6 +1005,91 @@ end)
 
 updateFastSwitchButtonVisual()
 
+-- ============ VEHICLE FLY BUTTON ============
+local VehicleFlyOnColor = Color3.fromRGB(150, 199, 150)
+
+local VehicleFlyButton = Instance.new("TextButton")
+VehicleFlyButton.Name = "VehicleFlyButton"
+VehicleFlyButton.AutoButtonColor = false
+VehicleFlyButton.BackgroundColor3 = Library.Scheme.MainColor
+VehicleFlyButton.Position = UDim2.fromOffset(6, 90)
+VehicleFlyButton.Size = UDim2.fromOffset(130, 32)
+VehicleFlyButton.Text = "Vehicle Fly: OFF"
+VehicleFlyButton.TextColor3 = Library.Scheme.FontColor
+VehicleFlyButton.Font = Enum.Font.Gotham
+VehicleFlyButton.TextSize = 14
+VehicleFlyButton.ZIndex = 10
+VehicleFlyButton.Visible = false
+VehicleFlyButton.Parent = Library.ScreenGui
+
+local VehicleFlyButtonCorner = Instance.new("UICorner")
+VehicleFlyButtonCorner.CornerRadius = UDim.new(0, Library.CornerRadius)
+VehicleFlyButtonCorner.Parent = VehicleFlyButton
+table.insert(Library.Corners, VehicleFlyButtonCorner)
+
+Library:AddOutline(VehicleFlyButton)
+Library:MakeDraggable(VehicleFlyButton, VehicleFlyButton, true)
+
+if not table.find(Library.DraggableElements, VehicleFlyButton) then
+    table.insert(Library.DraggableElements, VehicleFlyButton)
+end
+
+local function updateVehicleFlyButtonVisual()
+    local enabled = getgenv().SilentAimSettings.VehicleFlyEnabled
+    VehicleFlyButton.Text = enabled and "Vehicle Fly: ON" or "Vehicle Fly: OFF"
+
+    if enabled then
+        VehicleFlyButton.BackgroundColor3 = VehicleFlyOnColor
+        Library:AddToRegistry(VehicleFlyButton, { TextColor3 = "FontColor" })
+    else
+        VehicleFlyButton.BackgroundColor3 = Library.Scheme.MainColor
+        Library:AddToRegistry(VehicleFlyButton, {
+            BackgroundColor3 = "MainColor",
+            TextColor3 = "FontColor",
+        })
+    end
+end
+
+local function toggleVehicleFly(newState)
+    getgenv().SilentAimSettings.VehicleFlyEnabled = newState
+    updateVehicleFlyButtonVisual()
+end
+
+local VEHICLEFLY_CLICK_THRESHOLD = 0.35
+
+VehicleFlyButton.InputBegan:Connect(function(Input)
+    if Input.UserInputType ~= Enum.UserInputType.MouseButton1 and Input.UserInputType ~= Enum.UserInputType.Touch then
+        return
+    end
+
+    local Start = tick()
+    local Changed
+    Changed = Input.Changed:Connect(function()
+        if Input.UserInputState ~= Enum.UserInputState.End then
+            return
+        end
+
+        local IsLikelyDragging = tick() - Start > VEHICLEFLY_CLICK_THRESHOLD
+        if not IsLikelyDragging then
+            toggleVehicleFly(not getgenv().SilentAimSettings.VehicleFlyEnabled)
+        end
+
+        if Changed and Changed.Connected then
+            Changed:Disconnect()
+            Changed = nil
+        end
+    end)
+end)
+
+updateVehicleFlyButtonVisual()
+
+task.spawn(function()
+    while true do
+        task.wait(0.1)
+        updateVehicleFlyButtonVisual()
+    end
+end)
+
 -- ============ GUN SWITCHER ============
 local GunSwitcherBox = Tabs.Aimbot:AddRightGroupbox("Gun Switcher", "repeat")
 
@@ -1407,29 +1492,6 @@ local TeleportPlayerTab = TeleportsTabbox:AddTab(nil, "users")
 
 local teleports = {
     {"Nexus 1", Vector3.new(864, 100, 2406)},
-    {"Nexus 2", Vector3.new(997, 102, 2318)},
-    {"Cells", Vector3.new(889, 100, 2500)},
-    {"Yard", Vector3.new(801, 98, 2499)},
-    {"Cafeteria", Vector3.new(964, 103, 2286)},
-    {"Ventilation Ducts", Vector3.new(902, 124, 2216)},
-    {"Kitchen", Vector3.new(965, 100, 2240)},
-    {"Roof 1", Vector3.new(920, 132, 2243)},
-    {"Roof 2", Vector3.new(785, 119, 2244)},
-    {"Armory", Vector3.new(803, 108, 2257)},
-    {"Break Room", Vector3.new(794, 101, 2246)},
-    {"Outside Spot", Vector3.new(809, 98, 2221)},
-    {"Entrance", Vector3.new(737, 100, 2287)},
-    {"Secret Room", Vector3.new(728, 100, 2316)},
-    {"Garage", Vector3.new(582, 98, 2490)},
-    {"Open Gate Room", Vector3.new(497, 102, 2263)},
-    {"Front Wall 1", Vector3.new(510, 122, 2327)},
-    {"Front Wall 2", Vector3.new(505, 122, 2143)},
-    {"Front Guard Tower 1", Vector3.new(509, 126, 2597)},
-    {"Front Guard Tower 2", Vector3.new(498, 126, 2062)},
-    {"Guard Tower 1", Vector3.new(816, 126, 2582)},
-    {"Guard Tower 2", Vector3.new(825, 126, 2072)},
-    {"Sewage", Vector3.new(917, 79, 2102)},
-    {"Escape the Prison", Vector3.new(840, 98, 2598)},
 }
 
 for _, tp in ipairs(teleports) do
@@ -1559,7 +1621,7 @@ VehicleFlyTab:AddCheckbox("EnableVehicleFly", {
     Text = "Enable Vehicle Fly",
     Default = false,
     Callback = function(v)
-        getgenv().SilentAimSettings.VehicleFlyEnabled = v
+        toggleVehicleFly(v)
     end,
 })
 
@@ -1567,6 +1629,7 @@ VehicleFlyTab:AddCheckbox("ShowVehicleFlyButton", {
     Text = "Show Vehicle Fly Button",
     Default = false,
     Callback = function(v)
+        VehicleFlyButton.Visible = v
     end,
 })
 
@@ -1575,8 +1638,17 @@ VehicleFlyTab:AddLabel("Vehicle Fly Keybind"):AddKeyPicker("VehicleFlyKeybind", 
     NoUI = false,
     Text = "Vehicle Fly Keybind",
     Callback = function()
+        toggleVehicleFly(not getgenv().SilentAimSettings.VehicleFlyEnabled)
     end,
 })
+
+task.spawn(function()
+    while true do
+        task.wait(0.1)
+        local keyValue = Options.VehicleFlyKeybind.Value
+        getgenv().SilentAimSettings.VehicleFlyKeyCode = keyValue
+    end
+end)
 
 VehicleFlyTab:AddDivider()
 
