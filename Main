@@ -2016,6 +2016,7 @@ local function onKillFeedEntry(entry)
     end
 
     if killerUser == player.Name then
+        task.spawn(playKillEffect)
         playKillSound()
     end
 end
