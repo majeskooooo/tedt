@@ -91,6 +91,11 @@ getgenv().SilentAimSettings = {
     GunSwitchList = {},
     GunSwitchDelay = 0.01,
     GunSwitchEnabled = false,
+    ESPTextColor = Color3.fromRGB(255, 255, 255),
+    ESPTargetTextColor = Color3.fromRGB(255, 182, 255),
+    ESPTargetNameEnabled = false,
+    ESPNameTextSize = 12,
+    ESPTargetNameTextSize = 12,
 }
 
 local Settings = getgenv().SilentAimSettings
@@ -776,7 +781,8 @@ local function resetAllHighlights()
                 if billboard then
                     local label = billboard:FindFirstChild("NameLabel") or billboard:FindFirstChildOfClass("TextLabel")
                     if label then
-                        label.TextColor3 = Color3.fromRGB(255, 255, 255)
+                        label.TextColor3 = Settings.ESPTextColor or Color3.fromRGB(255, 255, 255)
+                        label.TextSize = Settings.ESPNameTextSize or 12
                         label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
                     end
                 end
@@ -797,17 +803,54 @@ local function highlightTarget(targetPlayer)
         highlight.FillTransparency = 0.65
         highlight.OutlineTransparency = 0
     end
-    
-    local head = targetPlayer.Character:FindFirstChild("Head")
-    if head then
-        local billboard = head:FindFirstChild("ESPNameTag")
-        if billboard then
-            local label = billboard:FindFirstChild("NameLabel") or billboard:FindFirstChildOfClass("TextLabel")
-            if label then
-                label.TextColor3 = targetColor
-                label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-            end
+end
+
+local function ensureTargetNameTag(head)
+    local billboard = head:FindFirstChild("ESPTargetNameTag")
+    if not billboard then
+        billboard = Instance.new("BillboardGui")
+        billboard.Name = "ESPTargetNameTag"
+        billboard.Size = UDim2.new(0, 200, 0, 30)
+        billboard.StudsOffset = Vector3.new(0, 1.5, 0)
+        billboard.AlwaysOnTop = true
+        billboard.Parent = head
+
+        local label = Instance.new("TextLabel")
+        label.Name = "TargetLabel"
+        label.BackgroundTransparency = 1
+        label.Size = UDim2.new(1, 0, 1, 0)
+        label.Text = "Target"
+        label.Font = Enum.Font.GothamBold
+        label.TextStrokeTransparency = 0
+        label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+        label.Parent = billboard
+    end
+    return billboard
+end
+
+local function updateTargetNameTag(targetPlayer)
+    if lastTargetPlayer and lastTargetPlayer ~= targetPlayer and lastTargetPlayer.Character then
+        local oldHead = lastTargetPlayer.Character:FindFirstChild("Head")
+        if oldHead then
+            local oldBillboard = oldHead:FindFirstChild("ESPTargetNameTag")
+            if oldBillboard then oldBillboard:Destroy() end
         end
+    end
+
+    if not targetPlayer or not targetPlayer.Character then return end
+    local head = targetPlayer.Character:FindFirstChild("Head")
+    if not head then return end
+
+    if Settings.ESPTargetNameEnabled then
+        local billboard = ensureTargetNameTag(head)
+        local label = billboard:FindFirstChild("TargetLabel")
+        if label then
+            label.TextColor3 = Settings.ESPTargetTextColor or Color3.fromRGB(255, 182, 255)
+            label.TextSize = Settings.ESPTargetNameTextSize or 12
+        end
+    else
+        local billboard = head:FindFirstChild("ESPTargetNameTag")
+        if billboard then billboard:Destroy() end
     end
 end
 
@@ -823,6 +866,8 @@ local function updateESPSync()
     if targetPlayer and targetPlayer.Character then
         highlightTarget(targetPlayer)
     end
+    
+    updateTargetNameTag(targetPlayer)
     
     lastTargetPlayer = targetPlayer
 end
@@ -2284,16 +2329,16 @@ function applyESP(plr)
             billboard = Instance.new("BillboardGui", head)
             billboard.Name = "ESPNameTag"
             billboard.Size = UDim2.new(0, 200, 0, 30)
-            billboard.StudsOffset = Vector3.new(0, 1.5, 0)
+            billboard.StudsOffset = Vector3.new(0, 2, 0)
             billboard.AlwaysOnTop = true
             local label = Instance.new("TextLabel", billboard)
             label.Name = "NameLabel"
             label.BackgroundTransparency = 1
             label.Size = UDim2.new(1, 0, 1, 0)
             label.Text = plr.DisplayName .. " (@" .. plr.Name .. ")"
-            label.TextColor3 = Color3.fromRGB(255, 255, 255)
+            label.TextColor3 = Settings.ESPTextColor or Color3.fromRGB(255, 255, 255)
             label.Font = Enum.Font.GothamBold
-            label.TextSize = 12
+            label.TextSize = Settings.ESPNameTextSize or 12
             label.TextStrokeTransparency = 0
             label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
         end
@@ -2308,6 +2353,8 @@ function removeESP(plr)
         if head then
             local billboard = head:FindFirstChild("ESPNameTag")
             if billboard then billboard:Destroy() end
+            local targetBillboard = head:FindFirstChild("ESPTargetNameTag")
+            if targetBillboard then targetBillboard:Destroy() end
         end
     end
 end
@@ -2362,6 +2409,14 @@ end
 
 function setESPTargetColorRGB(color)
     Settings.ESPTargetColor = color
+end
+
+function setESPTextColor(color)
+    Settings.ESPTextColor = color
+end
+
+function setESPTargetTextColor(color)
+    Settings.ESPTargetTextColor = color
 end
 
 -- ============ WEAPON SOUND PACKS ============
