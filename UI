@@ -12,12 +12,12 @@ local player = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
-Library.Scheme.AccentColor = Color3.fromRGB(239, 187, 204)
+Library.Scheme.AccentColor = Color3.fromRGB(155, 196, 226)
 
 -- ============ WINDOW SETUP ============
 local Window = Library:CreateWindow({
     Title = "",
-    Footer = "Version 0.6.4 | by 2knw",
+    Footer = "Precision Hub V0.6.5 | by 2knw",
     Icon = 74169651953690,
     NotifySide = "Right",
     ShowCustomCursor = true,
@@ -34,8 +34,8 @@ local Window = Library:CreateWindow({
 local Tabs = {
     Info = Window:AddTab("Info", "info", "Game info"),
     Aimbot = Window:AddTab("Main", "crosshair", "Core features"),
-    Visuals = Window:AddTab("Visuals", "eye", "ESP, tracers and visual customization"),
     Teleports = Window:AddTab("Weapons & Shop", "shopping-basket", "Teleports and Weapons"),
+    Visuals = Window:AddTab("Visuals", "eye", "ESP and Visual Customization"),
     ["UI Settings"] = Window:AddTab("UI Settings", "settings", "Customize the UI behavior and appearance"),
 }
 
@@ -176,7 +176,7 @@ end
 local UpdatesBox = Tabs.Info:AddLeftGroupbox("Updates", "bell")
 
 UpdatesBox:AddLabel("Prison Life", true)
-UpdatesBox:AddLabel("- Added Auto reload\n- Added JobId to Logs\n- Added Feedback System", true)
+UpdatesBox:AddLabel("- Autoshot is no longer compatible with Hitchance\n- Max Smoothing Time changed to 0.4\n- Bugs Fixed and Minor Improvements\n- Fast Switch Fixed\n- Added Auto get Weapons\n- Hitsound Improved\n- Added Infinite Stamina\n- Silent Aim Fixed\n- Added Vehicle Mods\n- Added Rusk1ddski Skybox\n- Teleports Remade\n- Added Name ESP", true)
 
 UpdatesBox:AddDivider("Info")
 
@@ -293,6 +293,42 @@ if Library.IsMobile then
     end)
 end
 
+-- ============ GET WEAPONS ============
+local GetWeaponsBox = Tabs.Teleports:AddLeftGroupbox("Get Weapons", "sword")
+
+GetWeaponsBox:AddDropdown("GetWeaponsList", {
+    Values = {"MP5", "AK-47", "M4A1", "FAL", "Remington 870", "M700"},
+    Multi = true,
+    Text = "Select Weapons to Get",
+    Tooltip = "Choose which weapons you want to receive",
+    Callback = function(Value)
+        local list = {}
+        for name, selected in pairs(Value or {}) do
+            if selected then
+                table.insert(list, name)
+            end
+        end
+        getgenv().SilentAimSettings.GetWeaponsList = list
+    end,
+})
+
+GetWeaponsBox:AddCheckbox("AutoGetWeapons", {
+    Text = "Auto get Weapons",
+    Default = false,
+    Callback = function(v)
+        getgenv().SilentAimSettings.AutoGetWeapons = v
+    end,
+})
+
+GetWeaponsBox:AddButton({
+    Text = "Get Weapons",
+    Func = function()
+        if getgenv().GetWeapons then
+            getgenv().GetWeapons()
+        end
+    end,
+})
+
 -- ============ PLAYERS TAB ============
 local PlayerSettingsBox = Tabs.Teleports:AddLeftGroupbox("Misc", "sliders")
 
@@ -311,6 +347,15 @@ PlayerSettingsBox:AddCheckbox("InfiniteJump", {
     Default = false,
     Callback = function(v)
         getgenv().SetInfiniteJumpEnabled(v)
+    end,
+})
+
+PlayerSettingsBox:AddCheckbox("InfiniteStamina", {
+    Text = "Infinite Stamina",
+    Tooltip = "Disables the jump cooldown",
+    Default = false,
+    Callback = function(v)
+        getgenv().SilentAimSettings.InfiniteStamina = v
     end,
 })
 
@@ -479,7 +524,7 @@ EnvironmentCloudTab:AddCheckbox("CustomSkybox", {
 })
 
 EnvironmentCloudTab:AddDropdown("Skyboxes", {
-    Values = {"None", "Gray Skybox", "2knw & Donk666 Skybox", "Snow Skybox", "Cartoon Skybox", "Lince Skybox", "Red Skybox", "Slam Skybox", "Green Eyeball Skybox", "Morioh Skybox", "Rainy Skybox"},
+    Values = {"None", "Gray Skybox", "2knw & Donk666 Skybox", "Snow Skybox", "Cartoon Skybox", "Lince Skybox", "Red Skybox", "Slam Skybox", "Green Eyeball Skybox", "Morioh Skybox", "Rainy Skybox", "Rusk1ddski Skybox"},
     Default = "None",
     Text = "Skyboxes",
     Tooltip = "Choose your skybox",
@@ -601,6 +646,15 @@ AimbotLeftBox:AddCheckbox("ForceFieldCheck", {
     end,
 })
 
+local AutoshootWarningLabel = AimbotLeftBox:AddLabel("Note: Autoshot is not compatible with Hitchance", true)
+
+do
+    local warningInstance = AutoshootWarningLabel.Holder and AutoshootWarningLabel.Holder:FindFirstChildOfClass("TextLabel")
+    if warningInstance then
+        warningInstance.TextColor3 = Color3.fromRGB(235, 70, 70)
+    end
+end
+
 AimbotLeftBox:AddDivider()
 
 AimbotLeftBox:AddDropdown("TargetTeams", {
@@ -615,7 +669,7 @@ AimbotLeftBox:AddDropdown("TargetTeams", {
 
 Options.TargetTeams:SetValue({ Inmates = true, Guards = true, Criminals = true })
 
--- ============ TARGET MODE - FIXED ============
+-- ============ TARGET MODE ============
 local lastTargetModeSelection = { ["Manual"] = true }
 local updateInProgress = false
 
@@ -876,7 +930,7 @@ FOVUsersTab:AddButton({
     end,
 })
 
--- ============ FAST SWITCH BUTTON (estilizado como a Library) ============
+-- ============ FAST SWITCH BUTTON ============
 local FastSwitchOnColor = Color3.fromRGB(150, 199, 150)
 
 local FastSwitchButton = Instance.new("TextButton")
@@ -951,6 +1005,91 @@ end)
 
 updateFastSwitchButtonVisual()
 
+-- ============ VEHICLE FLY BUTTON ============
+local VehicleFlyOnColor = Color3.fromRGB(150, 199, 150)
+
+local VehicleFlyButton = Instance.new("TextButton")
+VehicleFlyButton.Name = "VehicleFlyButton"
+VehicleFlyButton.AutoButtonColor = false
+VehicleFlyButton.BackgroundColor3 = Library.Scheme.MainColor
+VehicleFlyButton.Position = UDim2.fromOffset(6, 90)
+VehicleFlyButton.Size = UDim2.fromOffset(130, 32)
+VehicleFlyButton.Text = "Vehicle Fly: OFF"
+VehicleFlyButton.TextColor3 = Library.Scheme.FontColor
+VehicleFlyButton.Font = Enum.Font.Gotham
+VehicleFlyButton.TextSize = 14
+VehicleFlyButton.ZIndex = 10
+VehicleFlyButton.Visible = false
+VehicleFlyButton.Parent = Library.ScreenGui
+
+local VehicleFlyButtonCorner = Instance.new("UICorner")
+VehicleFlyButtonCorner.CornerRadius = UDim.new(0, Library.CornerRadius)
+VehicleFlyButtonCorner.Parent = VehicleFlyButton
+table.insert(Library.Corners, VehicleFlyButtonCorner)
+
+Library:AddOutline(VehicleFlyButton)
+Library:MakeDraggable(VehicleFlyButton, VehicleFlyButton, true)
+
+if not table.find(Library.DraggableElements, VehicleFlyButton) then
+    table.insert(Library.DraggableElements, VehicleFlyButton)
+end
+
+local function updateVehicleFlyButtonVisual()
+    local enabled = getgenv().SilentAimSettings.VehicleFlyEnabled
+    VehicleFlyButton.Text = enabled and "Vehicle Fly: ON" or "Vehicle Fly: OFF"
+
+    if enabled then
+        VehicleFlyButton.BackgroundColor3 = VehicleFlyOnColor
+        Library:AddToRegistry(VehicleFlyButton, { TextColor3 = "FontColor" })
+    else
+        VehicleFlyButton.BackgroundColor3 = Library.Scheme.MainColor
+        Library:AddToRegistry(VehicleFlyButton, {
+            BackgroundColor3 = "MainColor",
+            TextColor3 = "FontColor",
+        })
+    end
+end
+
+local function toggleVehicleFly(newState)
+    getgenv().SilentAimSettings.VehicleFlyEnabled = newState
+    updateVehicleFlyButtonVisual()
+end
+
+local VEHICLEFLY_CLICK_THRESHOLD = 0.35
+
+VehicleFlyButton.InputBegan:Connect(function(Input)
+    if Input.UserInputType ~= Enum.UserInputType.MouseButton1 and Input.UserInputType ~= Enum.UserInputType.Touch then
+        return
+    end
+
+    local Start = tick()
+    local Changed
+    Changed = Input.Changed:Connect(function()
+        if Input.UserInputState ~= Enum.UserInputState.End then
+            return
+        end
+
+        local IsLikelyDragging = tick() - Start > VEHICLEFLY_CLICK_THRESHOLD
+        if not IsLikelyDragging then
+            toggleVehicleFly(not getgenv().SilentAimSettings.VehicleFlyEnabled)
+        end
+
+        if Changed and Changed.Connected then
+            Changed:Disconnect()
+            Changed = nil
+        end
+    end)
+end)
+
+updateVehicleFlyButtonVisual()
+
+task.spawn(function()
+    while true do
+        task.wait(0.1)
+        updateVehicleFlyButtonVisual()
+    end
+end)
+
 -- ============ GUN SWITCHER ============
 local GunSwitcherBox = Tabs.Aimbot:AddRightGroupbox("Gun Switcher", "repeat")
 
@@ -1002,7 +1141,15 @@ GunSwitcherBox:AddLabel("Fast Switch Keybind"):AddKeyPicker("FastSwitchKeybind",
     end,
 })
 
--- ============ WEAPON MODIFICATIONS (TABBOX) ============
+task.spawn(function()
+    while true do
+        task.wait(0.1)
+        local keyValue = Options.FastSwitchKeybind.Value
+        getgenv().SilentAimSettings.FastSwitchKeyCode = keyValue
+    end
+end)
+
+-- ============ WEAPON MODIFICATIONS ============
 local WeaponModBox = Tabs.Aimbot:AddRightGroupbox("Weapon Mod", "sword")
 local WeaponModsTabbox = WeaponModBox:AddTabbox()
 
@@ -1242,13 +1389,106 @@ VisualsLeftBox:AddLabel("Target Highlight Color"):AddColorPicker("ESPTargetColor
     end,
 })
 
-VisualsLeftBox:AddCheckbox("HideESPNames", {
-    Text = "Hide ESP Names",
-    Tooltip = "Hides the names above players when ESP is active",
+local NameESPBox = Tabs.Visuals:AddLeftGroupbox("Name ESP", "user")
+
+NameESPBox:AddCheckbox("EnableNameESP", {
+    Text = "Enable Name ESP",
+    Tooltip = "Shows the names above players when ESP is active",
+    Default = true,
+    Callback = function(v)
+        getgenv().SilentAimSettings.ESPNamesEnabled = v
+        updateESP()
+    end,
+})
+
+NameESPBox:AddCheckbox("EnableTargetNameESP", {
+    Text = "Enable Target ESP Name",
+    Tooltip = "Shows a 'Target' label below the name of your current target",
     Default = false,
     Callback = function(v)
-        getgenv().SilentAimSettings.ESPNamesEnabled = not v
-        updateESP()
+        getgenv().SilentAimSettings.ESPTargetNameEnabled = v
+    end,
+})
+
+NameESPBox:AddLabel("Text Color"):AddColorPicker("ESPTextColor", {
+    Default = Color3.fromRGB(255, 255, 255),
+    Title = "Text Color",
+    Text = "Text Color",
+    Tooltip = "Sets the color of the Name ESP text",
+    Callback = function(Value)
+        setESPTextColor(Value)
+    end,
+})
+
+NameESPBox:AddLabel("Target Text Color"):AddColorPicker("ESPTargetTextColor", {
+    Default = Color3.fromRGB(255, 182, 255),
+    Title = "Target Text Color",
+    Text = "Target Text Color",
+    Tooltip = "Sets the color of the Target ESP Name text",
+    Callback = function(Value)
+        setESPTargetTextColor(Value)
+    end,
+})
+
+NameESPBox:AddDivider()
+
+NameESPBox:AddSlider("NameESPTextSize", {
+    Text = "Name ESP Text Size",
+    Default = 12,
+    Min = 0,
+    Max = 24,
+    Rounding = 0,
+    Callback = function(Value)
+        getgenv().SilentAimSettings.ESPNameTextSize = Value
+    end,
+})
+
+NameESPBox:AddSlider("TargetNameESPTextSize", {
+    Text = "Target Name ESP Text Size",
+    Default = 12,
+    Min = 0,
+    Max = 24,
+    Rounding = 0,
+    Callback = function(Value)
+        getgenv().SilentAimSettings.ESPTargetNameTextSize = Value
+    end,
+})
+
+NameESPBox:AddDivider()
+
+NameESPBox:AddInput("TargetCustomText", {
+    Text = "",
+    Placeholder = "Target",
+    ClearTextOnFocus = false,
+    Finished = false,
+})
+
+do
+    local holder = Options.TargetCustomText.Holder
+    local box = holder and holder:FindFirstChildOfClass("TextBox")
+    if box then
+        box:GetPropertyChangedSignal("Text"):Connect(function()
+            Options.TargetCustomText.Value = box.Text
+        end)
+    end
+end
+
+NameESPBox:AddButton({
+    Text = "Reset",
+    Func = function()
+        Options.TargetCustomText:SetValue("")
+        getgenv().SetTargetCustomText("Target")
+    end,
+})
+
+NameESPBox:AddButton({
+    Text = "Apply",
+    Func = function()
+        local text = Options.TargetCustomText.Value
+        if not text or text == "" then
+            text = "Target"
+        end
+        getgenv().SetTargetCustomText(text)
     end,
 })
 
@@ -1336,6 +1576,8 @@ ClampColorPickerToScreen("TracerColor")
 ClampColorPickerToScreen("BulletColor")
 ClampColorPickerToScreen("WeaponColor")
 ClampColorPickerToScreen("ColorScreenKillEffectColor")
+ClampColorPickerToScreen("ESPTextColor")
+ClampColorPickerToScreen("ESPTargetTextColor")
 
 -- ============ TELEPORTS TAB ============
 local TeleportsBox = Tabs.Teleports:AddRightGroupbox("Teleports", "map-pin")
@@ -1344,30 +1586,18 @@ local LocationsTab = TeleportsTabbox:AddTab(nil, "map-pin")
 local TeleportPlayerTab = TeleportsTabbox:AddTab(nil, "users")
 
 local teleports = {
-    {"Nexus 1", Vector3.new(864, 100, 2406)},
-    {"Nexus 2", Vector3.new(997, 102, 2318)},
-    {"Cells", Vector3.new(889, 100, 2500)},
-    {"Yard", Vector3.new(801, 98, 2499)},
-    {"Cafeteria", Vector3.new(964, 103, 2286)},
-    {"Ventilation Ducts", Vector3.new(902, 124, 2216)},
-    {"Kitchen", Vector3.new(965, 100, 2240)},
-    {"Roof 1", Vector3.new(920, 132, 2243)},
-    {"Roof 2", Vector3.new(785, 119, 2244)},
-    {"Armory", Vector3.new(803, 108, 2257)},
-    {"Break Room", Vector3.new(794, 101, 2246)},
-    {"Outside Spot", Vector3.new(809, 98, 2221)},
-    {"Entrance", Vector3.new(737, 100, 2287)},
+    {"Cafeteria", Vector3.new(868, 100, 2263)},
+    {"Yard", Vector3.new(714, 98, 2519)},
+    {"Entrance", Vector3.new(663, 100, 2314)},
     {"Secret Room", Vector3.new(728, 100, 2316)},
-    {"Garage", Vector3.new(582, 98, 2490)},
-    {"Open Gate Room", Vector3.new(497, 102, 2263)},
-    {"Front Wall 1", Vector3.new(510, 122, 2327)},
-    {"Front Wall 2", Vector3.new(505, 122, 2143)},
-    {"Front Guard Tower 1", Vector3.new(509, 126, 2597)},
-    {"Front Guard Tower 2", Vector3.new(498, 126, 2062)},
-    {"Guard Tower 1", Vector3.new(816, 126, 2582)},
-    {"Guard Tower 2", Vector3.new(825, 126, 2072)},
-    {"Sewage", Vector3.new(917, 79, 2102)},
-    {"Escape the Prison", Vector3.new(840, 98, 2598)},
+    {"Inside the Prison", Vector3.new(864, 100, 2406)},
+    {"Guardtower", Vector3.new(840, 122, 2593)},
+    {"Guardtower 2", Vector3.new(840, 122, 2067)},
+    {"Police Room", Vector3.new(850, 100, 2274)},
+    {"Police Room 2", Vector3.new(793, 101, 2246)},
+    {"Armory", Vector3.new(804, 108, 2257)},
+    {"Containers", Vector3.new(254, 73, 2359)},
+    {"Sniper Building", Vector3.new(-354, 114, 1991)},
 }
 
 for _, tp in ipairs(teleports) do
@@ -1382,7 +1612,7 @@ for _, tp in ipairs(teleports) do
     })
 end
 
--- ============ TELEPORTS SCROLL DRAG FIX (UI-script only) ============
+-- ============ TELEPORTS SCROLL DRAG FIX ============
 do
     local ScrollSide = Tabs.Teleports.Sides[2] 
     local ScrollTarget = LocationsTab.Container
@@ -1484,6 +1714,140 @@ TeleportPlayerTab:AddButton({
     end,
 })
 
+-- ============ VEHICLE MOD ============
+local VehicleModBox = Tabs.Teleports:AddRightGroupbox("Vehicle Mod", "car")
+VehicleModBox:SetDescription("Vehicle Modifications")
+local VehicleModsTabbox = VehicleModBox:AddTabbox()
+
+local VehicleFlyTab = VehicleModsTabbox:AddTab(nil, "wind")
+local VehicleSpeedTab = VehicleModsTabbox:AddTab(nil, "zap")
+local VehicleCustomTab = VehicleModsTabbox:AddTab(nil, "car")
+
+VehicleFlyTab:AddCheckbox("EnableVehicleFly", {
+    Text = "Enable Vehicle Fly",
+    Default = false,
+    Callback = function(v)
+        toggleVehicleFly(v)
+    end,
+})
+
+VehicleFlyTab:AddCheckbox("ShowVehicleFlyButton", {
+    Text = "Show Vehicle Fly Button",
+    Default = false,
+    Callback = function(v)
+        VehicleFlyButton.Visible = v
+    end,
+})
+
+VehicleFlyTab:AddLabel("Vehicle Fly Keybind"):AddKeyPicker("VehicleFlyKeybind", {
+    Default = "None",
+    NoUI = false,
+    Text = "Vehicle Fly Keybind",
+    Callback = function()
+        toggleVehicleFly(not getgenv().SilentAimSettings.VehicleFlyEnabled)
+    end,
+})
+
+task.spawn(function()
+    while true do
+        task.wait(0.1)
+        local keyValue = Options.VehicleFlyKeybind.Value
+        getgenv().SilentAimSettings.VehicleFlyKeyCode = keyValue
+    end
+end)
+
+VehicleFlyTab:AddDivider()
+
+VehicleFlyTab:AddLabel("Sit in vehicle to Activate", true)
+
+VehicleFlyTab:AddSlider("VehicleFlyHeight", {
+    Text = "Height (Y)",
+    Default = 0,
+    Min = 0,
+    Max = 65,
+    Rounding = 0,
+    Callback = function(Value)
+        getgenv().SilentAimSettings.VehicleFlyHeight = Value
+    end,
+})
+
+VehicleFlyTab:AddButton({
+    Text = "Flip Vehicle",
+    Func = function()
+        if getgenv().FlipVehicle then
+            getgenv().FlipVehicle()
+        end
+    end,
+})
+
+VehicleSpeedTab:AddCheckbox("VehicleMaxSpeedChanger", {
+    Text = "Vehicle Max speed Changer",
+    Default = false,
+    Callback = function(v)
+        getgenv().SilentAimSettings.VehicleMaxSpeedEnabled = v
+    end,
+})
+
+VehicleSpeedTab:AddDivider()
+
+VehicleSpeedTab:AddSlider("VehicleMaxSpeed", {
+    Text = "Vehicle Max Speed",
+    Default = 70,
+    Min = 70,
+    Max = 300,
+    Rounding = 0,
+    Callback = function(Value)
+        getgenv().SilentAimSettings.VehicleMaxSpeed = Value
+    end,
+})
+
+local CarListDropdown = VehicleCustomTab:AddDropdown("CarList", {
+    Values = {},
+    Default = nil,
+    AllowNull = true,
+    Text = "Car List",
+    Tooltip = "Select a car",
+    Callback = function(Value)
+        getgenv().SilentAimSettings.SelectedCar = Value
+    end,
+})
+
+VehicleCustomTab:AddButton({
+    Text = "Refresh List",
+    Func = function()
+        if getgenv().RefreshCarList then
+            local cars = getgenv().RefreshCarList()
+            Options.CarList:SetValues(cars)
+        end
+    end,
+})
+
+VehicleCustomTab:AddButton({
+    Text = "Bring Car",
+    Func = function()
+        if getgenv().BringCar and Options.CarList.Value then
+            getgenv().BringCar(Options.CarList.Value)
+        end
+    end,
+})
+
+VehicleCustomTab:AddButton({
+    Text = "Teleport to Car",
+    Func = function()
+        if getgenv().TeleportToCar and Options.CarList.Value then
+            getgenv().TeleportToCar(Options.CarList.Value)
+        end
+    end,
+})
+
+local VehicleBannableWarningLabel = VehicleCustomTab:AddLabel("Bannable, use at your own risk", true)
+
+do
+    local warningInstance = VehicleBannableWarningLabel.Holder and VehicleBannableWarningLabel.Holder:FindFirstChildOfClass("TextLabel")
+    if warningInstance then
+        warningInstance.TextColor3 = Color3.fromRGB(235, 70, 70)
+    end
+end
 -- ============ UI SETTINGS ============
 local MenuGroup = Tabs["UI Settings"]:AddLeftGroupbox("Menu", "settings")
 
