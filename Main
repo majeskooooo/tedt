@@ -291,17 +291,36 @@ end
 -- ============ MAIN FUNCTIONS ============
 local function isVisible(targetCharacter)
     if not targetCharacter then return false end
-    local hrp = targetCharacter:FindFirstChild("HumanoidRootPart")
-    if not hrp then return false end
-    local origin = camera.CFrame.Position
-    local direction = hrp.Position - origin
+    local targetHRP = targetCharacter:FindFirstChild("HumanoidRootPart")
+    if not targetHRP then return false end
 
+    local localChar = player.Character
+    local localHRP = localChar and localChar:FindFirstChild("HumanoidRootPart")
+    if not localHRP then return false end
+
+    local origin = targetHRP.Position
+    local direction = localHRP.Position - origin
+
+    local ignoreList = {player.Character, targetCharacter}
     local params = RaycastParams.new()
     params.FilterType = Enum.RaycastFilterType.Blacklist
-    params.FilterDescendantsInstances = {player.Character, targetCharacter}
+    params.FilterDescendantsInstances = ignoreList
 
-    local result = workspace:Raycast(origin, direction, params)
-    return result == nil
+    for i = 1, 10 do
+        local result = workspace:Raycast(origin, direction, params)
+        if not result then
+            return true
+        end
+
+        if result.Instance:IsA("BasePart") and result.Instance.Transparency >= 0.001 then
+            table.insert(ignoreList, result.Instance)
+            params.FilterDescendantsInstances = ignoreList
+        else
+            return false
+        end
+    end
+
+    return false
 end
 
 local function isValidTarget(plr)
@@ -655,7 +674,7 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
     local Arguments = {...}
     local self = Arguments[1]
 
-    if shootRemote and self == shootRemote and Method == "FireServer" and not checkcaller() then
+    if shootRemote and self == shootRemote and Method == "FireServer" then
         local bulletData = Arguments[2]
         local firstPellet = type(bulletData) == "table" and bulletData[1] or nil
         local hitInstance = firstPellet and firstPellet[3] or nil
