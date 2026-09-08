@@ -1,26 +1,5 @@
 -- Main Script Kayen Hub | Prison Life
 
-if not Drawing then
-    task.wait(1)
-    game.Players.LocalPlayer:Kick("Executor not support")
-end
-if not hookmetamethod then
-    task.wait(1)
-    game.Players.LocalPlayer:Kick("Executor not support")
-end
-if not hookfunction then
-    task.wait(1)
-    game.Players.LocalPlayer:Kick("Executor not support")
-end
-if not getconnections then
-    task.wait(1)
-    game.Players.LocalPlayer:Kick("Executor not support")
-end
-if not setfflag then
-    task.wait(1)
-    game.Players.LocalPlayer:Kick("Executor not support")
-end
-
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local RunService = game:GetService("RunService")
@@ -1284,18 +1263,38 @@ local function refreshCarList()
     end
 end
 
-local function findLocalCar()
-    for _, car in pairs(carContainer:GetChildren()) do
-        for _, obj in pairs(car:GetDescendants()) do
-            if obj:IsA("VehicleSeat") and obj.Occupant then
-                local char = obj.Occupant.Parent
-                if char and char == player.Character then
-                    return car
-                end
-            end
+local currentCar = nil
+
+local function updateCurrentCar()
+    local char = player.Character
+    local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+    local seat = humanoid and humanoid.SeatPart
+
+    if seat and seat:IsA("VehicleSeat") then
+        local car = seat:FindFirstAncestorOfClass("Model")
+        if car and car:IsDescendantOf(carContainer) then
+            currentCar = car
+            return
         end
     end
-    return nil
+
+    currentCar = nil
+end
+
+local function hookCharacterSeat(char)
+    local humanoid = char:WaitForChild("Humanoid", 5)
+    if not humanoid then return end
+    humanoid:GetPropertyChangedSignal("SeatPart"):Connect(updateCurrentCar)
+    updateCurrentCar()
+end
+
+if player.Character then
+    hookCharacterSeat(player.Character)
+end
+player.CharacterAdded:Connect(hookCharacterSeat)
+
+local function findLocalCar()
+    return currentCar
 end
 
 local function flipCarVertical()
@@ -1571,39 +1570,6 @@ autoShootParams.CollisionGroup = "ClientBullet"
 local lastAutoShotByWeapon = {}
 local AutoShootRaycastInProgress = false
 
-local originalWeaponFireRates = {}
-
-local function cacheOriginalFireRate(weapon)
-    if not weapon then return end
-    if originalWeaponFireRates[weapon.Name] then return end
-
-    local rate = weapon:GetAttribute("FireRate")
-    if rate and rate > 0 then
-        originalWeaponFireRates[weapon.Name] = rate
-    end
-end
-
-local function hookFireRateCacheContainer(container)
-    if not container then return end
-    container.ChildAdded:Connect(function(child)
-        if child:IsA("Tool") then
-            cacheOriginalFireRate(child)
-        end
-    end)
-end
-
-hookFireRateCacheContainer(player:FindFirstChild("Backpack"))
-if player.Character then
-    hookFireRateCacheContainer(player.Character)
-    for _, tool in ipairs(player.Character:GetChildren()) do
-        if tool:IsA("Tool") then cacheOriginalFireRate(tool) end
-    end
-end
-
-player.CharacterAdded:Connect(function(char)
-    hookFireRateCacheContainer(char)
-end)
-
 local function updateAmmoLabel(weapon, currentAmmo)
     local ok, gunFrame = pcall(function()
         return player.PlayerGui:WaitForChild("Home", 3)
@@ -1738,12 +1704,14 @@ RunService.Heartbeat:Connect(function()
     local weapon = getEquippedWeapon()
     if not weapon then return end
 
-    local fireRate
+    local fireRate = weapon:GetAttribute("FireRate") or 0.1
+    local weaponAutoFireAttr = weapon:GetAttribute("AutoFire")
+    if not weaponAutoFireAttr then
+        fireRate = fireRate * 1.5
+    end
 
-    if Settings.FastFirerateEnabled then
-        fireRate = Settings.FireRateValue or 0.01
-    else
-        fireRate = originalWeaponFireRates[weapon.Name] or weapon:GetAttribute("FireRate") or 0.1
+    if weapon.Name == "Remington 870" then
+        fireRate = 0.45  
     end
 
     local lastShotTime = lastAutoShotByWeapon[weapon.Name] or 0
