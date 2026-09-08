@@ -1182,6 +1182,15 @@ GunSwitcherBox:AddCheckbox("LockFastSwitchButton", {
     end,
 })
 
+GunSwitcherBox:AddCheckbox("CycleAllWeapons", {
+    Text = "Cycle All Weapons",
+    Tooltip = "Automatically includes every weapon you own in Fast Switch, ignoring the dropdown selection above",
+    Default = false,
+    Callback = function(v)
+        getgenv().SilentAimSettings.GunSwitchCycleAll = v
+    end,
+})
+
 GunSwitcherBox:AddLabel("Fast Switch Keybind"):AddKeyPicker("FastSwitchKeybind", {
     Default = "None",
     NoUI = false,
@@ -1441,7 +1450,7 @@ VisualsLeftBox:AddLabel("Target Highlight Color"):AddColorPicker("ESPTargetColor
     end,
 })
 
-local NameESPBox = Tabs.Visuals:AddLeftGroupbox("Name ESP", "user")
+local NameESPBox = Tabs.Visuals:AddLeftGroupbox("Name ESP", "type-outline")
 
 NameESPBox:AddCheckbox("EnableNameESP", {
     Text = "Enable Name ESP",
