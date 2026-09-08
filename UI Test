@@ -648,12 +648,12 @@ AimbotLeftBox:AddCheckbox("ForceFieldCheck", {
     end,
 })
 
-AimbotTab:AddLabel("Note: Autoshot is not compatible with Hitchance")
+local AutoshootWarningLabel = AimbotLeftBox:AddLabel("Note: Autoshot is not compatible with Hitchance", true)
 
 do
     local warningInstance = AutoshootWarningLabel.Holder and AutoshootWarningLabel.Holder:FindFirstChildOfClass("TextLabel")
     if warningInstance then
-        warningInstance.TextColor3 = Color3.fromRGB(235, 70, 70)
+        warningInstance.TextColor3 = Color3.fromRGB(255, 70, 70)
     end
 end
 
