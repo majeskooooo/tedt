@@ -1264,28 +1264,45 @@ local function refreshCarList()
 end
 
 local currentCar = nil
+local seatConnection = nil
 
-local function updateCurrentCar()
-    local char = player.Character
-    local humanoid = char and char:FindFirstChildOfClass("Humanoid")
-    local seat = humanoid and humanoid.SeatPart
-
-    if seat and seat:IsA("VehicleSeat") then
-        local car = seat:FindFirstAncestorOfClass("Model")
-        if car and car:IsDescendantOf(carContainer) then
-            currentCar = car
-            return
+local function getCarFromSeat(seat)
+    local model = seat
+    local iterations = 0
+    while model and model.Parent and model.Parent ~= carContainer do
+        model = model.Parent
+        iterations += 1
+        if iterations > 20 then
+            return nil
         end
     end
+    if model and model.Parent == carContainer then
+        return model
+    end
+    return nil
+end
 
-    currentCar = nil
+local function updateCurrentCar(_, seatPart)
+    if seatPart and seatPart:IsA("VehicleSeat") then
+        currentCar = getCarFromSeat(seatPart)
+    else
+        currentCar = nil
+    end
 end
 
 local function hookCharacterSeat(char)
-    local humanoid = char:WaitForChild("Humanoid", 5)
-    if not humanoid then return end
-    humanoid:GetPropertyChangedSignal("SeatPart"):Connect(updateCurrentCar)
-    updateCurrentCar()
+    task.spawn(function()
+        local humanoid = char:WaitForChild("Humanoid", 5)
+        if not humanoid or not char.Parent then return end
+
+        if seatConnection then
+            seatConnection:Disconnect()
+            seatConnection = nil
+        end
+
+        currentCar = nil
+        seatConnection = humanoid.Seated:Connect(updateCurrentCar)
+    end)
 end
 
 if player.Character then
