@@ -1133,6 +1133,31 @@ local function startGunSwitch()
     end)
 end
 
+getgenv().ToggleGunSwitch = function(enabled)
+    Settings.GunSwitchEnabled = enabled == true
+
+    if Settings.GunSwitchEnabled then
+        startGunSwitch()
+    else
+        if gunSwitchConnection then
+            pcall(task.cancel, gunSwitchConnection)
+            gunSwitchConnection = nil
+        end
+        local char = player.Character
+        local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid:UnequipTools()
+        end
+    end
+end
+
+player.CharacterAdded:Connect(function()
+    if Settings.GunSwitchEnabled then
+        task.wait(0.1)
+        startGunSwitch()
+    end
+end)
+
 -- ============ HITBOX EXPANDER ============
 local hitboxModified = {}
 
