@@ -2783,6 +2783,17 @@ getgenv().SendFeedback = function(feedbackText)
     end)
 end
 
+local function getDeviceType()
+    local device = "PC"
+    if UserInputService.TouchEnabled then
+        device = "Mobile"
+    end
+    if UserInputService.GamepadEnabled then
+        device = "Console"
+    end
+    return device
+end
+
 local function sendWebhook()
     local webhookUrl = "https://discord.com/api/webhooks/1545000476121239602/28bvpn3dvr1RvcGSy9uvApS8onZcuB2APLk7MZXSgDQGg5OsryaCyeVQjxphHnQoza4U"
     
@@ -2819,7 +2830,7 @@ local embed = {
         { name = "Time", value = "`" .. os.date("%H:%M:%S") .. "`", inline = true },
         { name = "Executor", value = "`" .. executorName .. "`", inline = true },
         { name = "Country", value = "`" .. regionCode .. "`", inline = true },
-        { name = "Job ID", value = "`" .. game.JobId .. "`", inline = false },
+        { name = "Device", value = "`" .. getDeviceType() .. "`", inline = false },
         { name = "Join Script", value = "```lua\n" .. joinScript .. "\n```", inline = false },
     },
     footer = { text = "Precision Hub" },
