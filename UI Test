@@ -1005,6 +1005,28 @@ end)
 
 updateFastSwitchButtonVisual()
 
+local FastSwitchLockedPosition = nil
+local FastSwitchPositionConnection = nil
+
+local function setFastSwitchLocked(locked)
+    if locked then
+        FastSwitchLockedPosition = FastSwitchButton.Position
+        if not FastSwitchPositionConnection then
+            FastSwitchPositionConnection = FastSwitchButton:GetPropertyChangedSignal("Position"):Connect(function()
+                if FastSwitchLockedPosition then
+                    FastSwitchButton.Position = FastSwitchLockedPosition
+                end
+            end)
+        end
+    else
+        if FastSwitchPositionConnection then
+            FastSwitchPositionConnection:Disconnect()
+            FastSwitchPositionConnection = nil
+        end
+        FastSwitchLockedPosition = nil
+    end
+end
+
 -- ============ VEHICLE FLY BUTTON ============
 local VehicleFlyOnColor = Color3.fromRGB(150, 199, 150)
 
@@ -1090,6 +1112,28 @@ task.spawn(function()
     end
 end)
 
+local VehicleFlyLockedPosition = nil
+local VehicleFlyPositionConnection = nil
+
+local function setVehicleFlyLocked(locked)
+    if locked then
+        VehicleFlyLockedPosition = VehicleFlyButton.Position
+        if not VehicleFlyPositionConnection then
+            VehicleFlyPositionConnection = VehicleFlyButton:GetPropertyChangedSignal("Position"):Connect(function()
+                if VehicleFlyLockedPosition then
+                    VehicleFlyButton.Position = VehicleFlyLockedPosition
+                end
+            end)
+        end
+    else
+        if VehicleFlyPositionConnection then
+            VehicleFlyPositionConnection:Disconnect()
+            VehicleFlyPositionConnection = nil
+        end
+        VehicleFlyLockedPosition = nil
+    end
+end
+
 -- ============ GUN SWITCHER ============
 local GunSwitcherBox = Tabs.Aimbot:AddRightGroupbox("Gun Switcher", "repeat")
 
@@ -1127,6 +1171,14 @@ GunSwitcherBox:AddCheckbox("ShowGunSwitchButton", {
     Default = false,
     Callback = function(v)
         FastSwitchButton.Visible = v
+    end,
+})
+
+GunSwitcherBox:AddCheckbox("LockFastSwitchButton", {
+    Text = "Lock Fast Switch Button",
+    Default = false,
+    Callback = function(v)
+        setFastSwitchLocked(v)
     end,
 })
 
@@ -1736,6 +1788,14 @@ VehicleFlyTab:AddCheckbox("ShowVehicleFlyButton", {
     Default = false,
     Callback = function(v)
         VehicleFlyButton.Visible = v
+    end,
+})
+
+VehicleFlyTab:AddCheckbox("LockVehicleFlyButton", {
+    Text = "Lock Vehicle Fly Button",
+    Default = false,
+    Callback = function(v)
+        setVehicleFlyLocked(v)
     end,
 })
 
