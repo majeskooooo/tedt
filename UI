@@ -1,5 +1,5 @@
 -- UI Script Precision | Prison Life
-local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
+local repo = "https://raw.githubusercontent.com/majeskooooo/Obsidian/main/"
 local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
 local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
 local SaveManager = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
@@ -17,7 +17,9 @@ Library.Scheme.AccentColor = Color3.fromRGB(155, 196, 226)
 -- ============ WINDOW SETUP ============
 local Window = Library:CreateWindow({
     Title = "",
-    Footer = "Precision Hub V0.6.5 | by 2knw",
+    Footer = "Precision Hub",
+    FooterLeft = "0.6.6",
+    FooterRight = "Made by 2knw",
     Icon = 74169651953690,
     NotifySide = "Right",
     ShowCustomCursor = true,
@@ -176,7 +178,7 @@ end
 local UpdatesBox = Tabs.Info:AddLeftGroupbox("Updates", "bell")
 
 UpdatesBox:AddLabel("Prison Life", true)
-UpdatesBox:AddLabel("- Autoshot is no longer compatible with Hitchance\n- Max Smoothing Time changed to 0.4\n- Bugs Fixed and Minor Improvements\n- Fast Switch Fixed\n- Added Auto get Weapons\n- Hitsound Improved\n- Added Infinite Stamina\n- Silent Aim Fixed\n- Added Vehicle Mods\n- Added Rusk1ddski Skybox\n- Teleports Remade\n- Added Name ESP", true)
+UpdatesBox:AddLabel("- Lag when there are many cars in the game Fixed\n- Groupboxes Drag Removed\n- Added Lock Fast Switch Button\n- Added Lock Vehicle Fly Button\n- Added Cycle All Weapons\n- Many UI Changes, Improvements and Fixes\n- Scroll Bug Fixed\n- Added Glow in the UI\n- Vehicle Fly Fixed", true)
 
 UpdatesBox:AddDivider("Info")
 
@@ -191,7 +193,7 @@ UpdatesBox:AddButton({
 
 -- ============ FEEDBACK SYSTEM GROUP ============
 local FeedbackBox = Tabs.Info:AddRightGroupbox("Feedback System", "mail")
-FeedbackBox:SetDescription("Send feedback to developer")
+FeedbackBox:SetDescription("Send feedback to developer (Join the Discord Server for More Info)")
 
 FeedbackBox:AddLabel("Your feedback")
 
@@ -651,7 +653,7 @@ local AutoshootWarningLabel = AimbotLeftBox:AddLabel("Note: Autoshot is not comp
 do
     local warningInstance = AutoshootWarningLabel.Holder and AutoshootWarningLabel.Holder:FindFirstChildOfClass("TextLabel")
     if warningInstance then
-        warningInstance.TextColor3 = Color3.fromRGB(235, 70, 70)
+        warningInstance.TextColor3 = Color3.fromRGB(255, 70, 70)
     end
 end
 
@@ -1005,6 +1007,28 @@ end)
 
 updateFastSwitchButtonVisual()
 
+local FastSwitchLockedPosition = nil
+local FastSwitchPositionConnection = nil
+
+local function setFastSwitchLocked(locked)
+    if locked then
+        FastSwitchLockedPosition = FastSwitchButton.Position
+        if not FastSwitchPositionConnection then
+            FastSwitchPositionConnection = FastSwitchButton:GetPropertyChangedSignal("Position"):Connect(function()
+                if FastSwitchLockedPosition then
+                    FastSwitchButton.Position = FastSwitchLockedPosition
+                end
+            end)
+        end
+    else
+        if FastSwitchPositionConnection then
+            FastSwitchPositionConnection:Disconnect()
+            FastSwitchPositionConnection = nil
+        end
+        FastSwitchLockedPosition = nil
+    end
+end
+
 -- ============ VEHICLE FLY BUTTON ============
 local VehicleFlyOnColor = Color3.fromRGB(150, 199, 150)
 
@@ -1090,6 +1114,28 @@ task.spawn(function()
     end
 end)
 
+local VehicleFlyLockedPosition = nil
+local VehicleFlyPositionConnection = nil
+
+local function setVehicleFlyLocked(locked)
+    if locked then
+        VehicleFlyLockedPosition = VehicleFlyButton.Position
+        if not VehicleFlyPositionConnection then
+            VehicleFlyPositionConnection = VehicleFlyButton:GetPropertyChangedSignal("Position"):Connect(function()
+                if VehicleFlyLockedPosition then
+                    VehicleFlyButton.Position = VehicleFlyLockedPosition
+                end
+            end)
+        end
+    else
+        if VehicleFlyPositionConnection then
+            VehicleFlyPositionConnection:Disconnect()
+            VehicleFlyPositionConnection = nil
+        end
+        VehicleFlyLockedPosition = nil
+    end
+end
+
 -- ============ GUN SWITCHER ============
 local GunSwitcherBox = Tabs.Aimbot:AddRightGroupbox("Gun Switcher", "repeat")
 
@@ -1127,6 +1173,23 @@ GunSwitcherBox:AddCheckbox("ShowGunSwitchButton", {
     Default = false,
     Callback = function(v)
         FastSwitchButton.Visible = v
+    end,
+})
+
+GunSwitcherBox:AddCheckbox("LockFastSwitchButton", {
+    Text = "Lock Fast Switch Button",
+    Default = false,
+    Callback = function(v)
+        setFastSwitchLocked(v)
+    end,
+})
+
+GunSwitcherBox:AddCheckbox("CycleAllWeapons", {
+    Text = "Cycle All Weapons",
+    Tooltip = "Automatically includes every weapon you own in Fast Switch, ignoring the dropdown selection above",
+    Default = false,
+    Callback = function(v)
+        getgenv().SilentAimSettings.GunSwitchCycleAll = v
     end,
 })
 
@@ -1389,7 +1452,7 @@ VisualsLeftBox:AddLabel("Target Highlight Color"):AddColorPicker("ESPTargetColor
     end,
 })
 
-local NameESPBox = Tabs.Visuals:AddLeftGroupbox("Name ESP", "user")
+local NameESPBox = Tabs.Visuals:AddLeftGroupbox("Name ESP", "type-outline")
 
 NameESPBox:AddCheckbox("EnableNameESP", {
     Text = "Enable Name ESP",
@@ -1612,40 +1675,6 @@ for _, tp in ipairs(teleports) do
     })
 end
 
--- ============ TELEPORTS SCROLL DRAG FIX ============
-do
-    local ScrollSide = Tabs.Teleports.Sides[2] 
-    local ScrollTarget = LocationsTab.Container
-    local lastTranslation = nil
-
-    UserInputService.TouchPan:Connect(function(touchPositions, totalTranslation, velocity, state)
-        local touchPos = touchPositions[1]
-        if not touchPos then return end
-
-        if state == Enum.UserInputState.Begin then
-            if Library:MouseIsOverFrame(ScrollTarget, touchPos) then
-                lastTranslation = totalTranslation
-            else
-                lastTranslation = nil
-            end
-            return
-        end
-
-        if not lastTranslation then return end
-
-        local delta = totalTranslation - lastTranslation
-        lastTranslation = totalTranslation
-
-        local maxY = math.max(0, ScrollSide.AbsoluteCanvasSize.Y - ScrollSide.AbsoluteWindowSize.Y)
-        local newY = math.clamp(ScrollSide.CanvasPosition.Y - delta.Y, 0, maxY)
-        ScrollSide.CanvasPosition = Vector2.new(ScrollSide.CanvasPosition.X, newY)
-
-        if state == Enum.UserInputState.End or state == Enum.UserInputState.Cancel then
-            lastTranslation = nil
-        end
-    end)
-end
-
 TeleportPlayerTab:AddDivider("Teleport to Player")
 
 TeleportPlayerTab:AddDropdown("TeleportPlayer", {
@@ -1736,6 +1765,14 @@ VehicleFlyTab:AddCheckbox("ShowVehicleFlyButton", {
     Default = false,
     Callback = function(v)
         VehicleFlyButton.Visible = v
+    end,
+})
+
+VehicleFlyTab:AddCheckbox("LockVehicleFlyButton", {
+    Text = "Lock Vehicle Fly Button",
+    Default = false,
+    Callback = function(v)
+        setVehicleFlyLocked(v)
     end,
 })
 
