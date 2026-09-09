@@ -18,7 +18,7 @@ Library.Scheme.AccentColor = Color3.fromRGB(155, 196, 226)
 local Window = Library:CreateWindow({
     Title = "",
     Footer = "Precision Hub",
-    FooterLeft = "0.6.6",
+    FooterLeft = "0.6.7",
     FooterRight = "Made by 2knw",
     Icon = 74169651953690,
     NotifySide = "Right",
@@ -178,7 +178,7 @@ end
 local UpdatesBox = Tabs.Info:AddLeftGroupbox("Updates", "bell")
 
 UpdatesBox:AddLabel("Prison Life", true)
-UpdatesBox:AddLabel("- Autoshot is no longer compatible with Hitchance\n- Max Smoothing Time changed to 0.4\n- Bugs Fixed and Minor Improvements\n- Fast Switch Fixed\n- Added Auto get Weapons\n- Hitsound Improved\n- Added Infinite Stamina\n- Silent Aim Fixed\n- Added Vehicle Mods\n- Added Rusk1ddski Skybox\n- Teleports Remade\n- Added Name ESP", true)
+UpdatesBox:AddLabel("- Lag when there are many cars in the game Fixed\n- Groupboxes Drag Removed\n- Added Lock Fast Switch Button\n- Added Lock Vehicle Fly Button\n- Added Cycle All Weapons\n- Many UI Changes, Improvements and Fixes\n- Scroll Bug Fixed\n- Added Glow in the UI\n- Vehicle Fly Fixed", true)
 
 UpdatesBox:AddDivider("Info")
 
@@ -1364,7 +1364,7 @@ SoundTab:AddCheckbox("CustomHitSound", {
 SoundTab:AddDivider()
 
 SoundTab:AddDropdown("KillSound", {
-    Values = {"Fahhh", "Epic Kill 1", "Epic Kill 2", "Laugh", "Cat Laughing Meme", "Goofy Laugh", "PVZ Laugh"},
+    Values = {"Fahhh", "Epic Kill 1", "Epic Kill 2", "Laugh", "Cat Laughing Meme", "Goofy Laugh", "PVZ Laugh", "Xbox Live Notification"},
     Default = 1,
     Text = "Kill Sound",
     Tooltip = "Select a custom kill sound",
