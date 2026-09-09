@@ -2624,7 +2624,7 @@ local HitSounds = {
     ["Minecraft Hit 1"] = 135478009117226,
     ["MLG Hit"] = 109817519733426,
     ["Fahhh Hit"] = 139259088251978,
-    [Xbox Live Notification] = 117934611310434,
+    ["Xbox Live Notification"] = 117934611310434,
 }
 
 local KillSounds = {
