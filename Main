@@ -560,10 +560,10 @@ local function registerHit(result)
 
     if not hitPart or not hitPart:IsA("BasePart") then return end
 
-    local char = hitPart.Parent
-    if not char then return end
+local char = hitPart:FindFirstAncestorOfClass("Model")
+if not char then return end
 
-    local hitPlayer = Players:GetPlayerFromCharacter(char)
+local hitPlayer = Players:GetPlayerFromCharacter(char)
     if not hitPlayer or hitPlayer == player then return end
 
     if Settings.HitLogsEnabled then
@@ -2537,7 +2537,6 @@ local SoundPacks = {
     ["Dart Gun"] = { ShootSound = 5924183835 },
     ["Energy Shot"] = { ShootSound = 113363294416214 },
     ["Neverlose"] = { ShootSound = 82938206376993 },
-    ["Xbox Live Notification"] = { ShootSound = 117934611310434 },
 }
 
 local CurrentSoundPack = nil
