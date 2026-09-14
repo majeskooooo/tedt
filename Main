@@ -645,6 +645,18 @@ oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(...)
     local Arguments = {...}
     local self = Arguments[1]
 
+    if Method == "Play" and self.ClassName == "Sound" and not checkcaller() then
+        local tool = self.Parent and self.Parent.Parent
+        local localChar = player.Character
+        if localChar and tool and tool.Parent == localChar and tool.ClassName == "Tool" and tool:GetAttribute("ToolType") == "Gun" then
+            local soundClone = self:Clone()
+            soundClone.Parent = camera
+            soundClone.Playing = true
+            task.delay(5, soundClone.Destroy, soundClone)
+            return
+        end
+    end
+
     if shootRemote and self == shootRemote and Method == "FireServer" then
         local bulletData = Arguments[2]
         local firstPellet = type(bulletData) == "table" and bulletData[1] or nil
@@ -2621,9 +2633,14 @@ local HitSounds = {
     ["Metal Bat Hit"] = 114303603199822,
     ["Neverlose"] = 82938206376993,
     ["Minecraft Hit 1"] = 135478009117226,
+    ["Minecraft Hit 2"] = 4018616850,
     ["MLG Hit"] = 109817519733426,
     ["Fahhh Hit"] = 139259088251978,
     ["Xbox Live Notification"] = 117934611310434,
+    ["Rust"] = 1255040462,
+    ["Fatality"] = 6534947869,
+    ["Skeet"] = 5633695679,
+    ["Pick"] = 1347140027,
 }
 
 local KillSounds = {
@@ -2699,7 +2716,54 @@ getgenv().SetKillSound = function(name)
     CurrentKillSound = KillSounds[name]
 end
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/majeskooooo/tedt/refs/heads/main/UI%20Test"))() 
+local function loadUI()
+    local uiUrls = {
+        "https://raw.githubusercontent.com/majeskooooo/tedt/refs/heads/main/UI%20Test",
+        "https://cdn.jsdelivr.net/gh/majeskooooo/tedt@main/UI%20Test",
+    }
+
+    local maxAttempts = 3
+    local retryDelay = 1.5
+
+    for _, url in ipairs(uiUrls) do
+        for attempt = 1, maxAttempts do
+            local ok, result = pcall(function()
+                local source = game:HttpGet(url)
+
+                if not source or #source < 100 or source:sub(1, 1) == "<" then
+                    error("Invalid or empty response from URL")
+                end
+
+                local chunk, compileErr = loadstring(source)
+                if not chunk then
+                    error("Failed to compile UI: " .. tostring(compileErr))
+                end
+
+                return chunk()
+            end)
+
+            if ok then
+                return true
+            end
+
+            task.wait(retryDelay)
+        end
+    end
+
+    return false
+end
+
+if not loadUI() then
+    pcall(function()
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "UI Failed to Load",
+            Text = "Could not load the interface. Please try running the script again.",
+            Duration = 8,
+        })
+    end)
+    error("Failed to load the UI after all attempts.")
+end
+
 -- ============ DISCORD WEBHOOK ============
 local HttpService = game:GetService("HttpService")
 local http_request = http_request or request or (syn and syn.request) or (http and http.request)
