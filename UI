@@ -13,12 +13,16 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 Library.Scheme.AccentColor = Color3.fromRGB(155, 196, 226)
+Library.Scheme.BackgroundColor = Color3.fromRGB(10, 13, 18)
+Library.Scheme.MainColor = Color3.fromRGB(18, 22, 30)
+Library.Scheme.OutlineColor = Color3.fromRGB(28, 34, 44)
+Library.Scheme.DarkColor = Color3.fromRGB(4, 5, 8)
 
 -- ============ WINDOW SETUP ============
 local Window = Library:CreateWindow({
     Title = "",
     Footer = "Precision Hub",
-    FooterLeft = "0.6.6",
+    FooterLeft = "0.6.7",
     FooterRight = "Made by 2knw",
     Icon = 74169651953690,
     NotifySide = "Right",
@@ -178,7 +182,7 @@ end
 local UpdatesBox = Tabs.Info:AddLeftGroupbox("Updates", "bell")
 
 UpdatesBox:AddLabel("Prison Life", true)
-UpdatesBox:AddLabel("- Lag when there are many cars in the game Fixed\n- Groupboxes Drag Removed\n- Added Lock Fast Switch Button\n- Added Lock Vehicle Fly Button\n- Added Cycle All Weapons\n- Many UI Changes, Improvements and Fixes\n- Scroll Bug Fixed\n- Added Glow in the UI\n- Vehicle Fly Fixed", true)
+UpdatesBox:AddLabel("- Added Minecraft Hit 2 Hitsound\n- Added Xbox Live Notification Hitsound\n- Added Rust Hitsound\n- Added Fatality Hitsound\n- Added Skeet Hitsound\n- Added Pick Hitsound\n- New Default Theme\n- Hitsound Fixed\n- Now u Need to Hold the Fast Switch Button to Enable the Fast Switch\n- Fixed UI not Showing\n- Added Preserve Sounds", true)
 
 UpdatesBox:AddDivider("Info")
 
@@ -977,10 +981,54 @@ local function updateFastSwitchButtonVisual()
     end
 end
 
+local FastSwitchLockedPosition = nil
+local FastSwitchPositionConnection = nil
+
+local function setFastSwitchLocked(locked)
+    if locked then
+        FastSwitchLockedPosition = FastSwitchButton.Position
+        if not FastSwitchPositionConnection then
+            FastSwitchPositionConnection = FastSwitchButton:GetPropertyChangedSignal("Position"):Connect(function()
+                if FastSwitchLockedPosition then
+                    FastSwitchButton.Position = FastSwitchLockedPosition
+                end
+            end)
+        end
+    else
+        if FastSwitchPositionConnection then
+            FastSwitchPositionConnection:Disconnect()
+            FastSwitchPositionConnection = nil
+        end
+        FastSwitchLockedPosition = nil
+    end
+end
+
 local FASTSWITCH_CLICK_THRESHOLD = 0.35
+local FastSwitchHoldMode = false
 
 FastSwitchButton.InputBegan:Connect(function(Input)
     if Input.UserInputType ~= Enum.UserInputType.MouseButton1 and Input.UserInputType ~= Enum.UserInputType.Touch then
+        return
+    end
+
+    if FastSwitchHoldMode then
+        getgenv().ToggleGunSwitch(true)
+        updateFastSwitchButtonVisual()
+
+        local Changed
+        Changed = Input.Changed:Connect(function()
+            if Input.UserInputState ~= Enum.UserInputState.End and Input.UserInputState ~= Enum.UserInputState.Cancel then
+                return
+            end
+
+            getgenv().ToggleGunSwitch(false)
+            updateFastSwitchButtonVisual()
+
+            if Changed and Changed.Connected then
+                Changed:Disconnect()
+                Changed = nil
+            end
+        end)
         return
     end
 
@@ -1004,30 +1052,6 @@ FastSwitchButton.InputBegan:Connect(function(Input)
         end
     end)
 end)
-
-updateFastSwitchButtonVisual()
-
-local FastSwitchLockedPosition = nil
-local FastSwitchPositionConnection = nil
-
-local function setFastSwitchLocked(locked)
-    if locked then
-        FastSwitchLockedPosition = FastSwitchButton.Position
-        if not FastSwitchPositionConnection then
-            FastSwitchPositionConnection = FastSwitchButton:GetPropertyChangedSignal("Position"):Connect(function()
-                if FastSwitchLockedPosition then
-                    FastSwitchButton.Position = FastSwitchLockedPosition
-                end
-            end)
-        end
-    else
-        if FastSwitchPositionConnection then
-            FastSwitchPositionConnection:Disconnect()
-            FastSwitchPositionConnection = nil
-        end
-        FastSwitchLockedPosition = nil
-    end
-end
 
 -- ============ VEHICLE FLY BUTTON ============
 local VehicleFlyOnColor = Color3.fromRGB(150, 199, 150)
@@ -1184,6 +1208,19 @@ GunSwitcherBox:AddCheckbox("LockFastSwitchButton", {
     end,
 })
 
+GunSwitcherBox:AddCheckbox("HoldFastSwitchButton", {
+    Text = "Hold Fast Switch Button to Enable",
+    Default = false,
+    Callback = function(v)
+        FastSwitchHoldMode = v
+
+        if getgenv().SilentAimSettings.GunSwitchEnabled then
+            getgenv().ToggleGunSwitch(false)
+            updateFastSwitchButtonVisual()
+        end
+    end,
+})
+
 GunSwitcherBox:AddCheckbox("CycleAllWeapons", {
     Text = "Cycle All Weapons",
     Tooltip = "Automatically includes every weapon you own in Fast Switch, ignoring the dropdown selection above",
@@ -1334,7 +1371,7 @@ local SoundTab = WeaponModsTabbox:AddTab(nil, "volume-2")
 local NotifyTab = WeaponModsTabbox:AddTab(nil, "bell")
 
 SoundTab:AddDropdown("WeaponSoundPack", {
-    Values = {"None", "Silenced Shot", "Bubble Shot", "Laser Shot", "Dart Gun", "Energy Shot", "Neverlose", "Xbox Live Notification"},
+    Values = {"None", "Silenced Shot", "Bubble Shot", "Laser Shot", "Dart Gun", "Energy Shot", "Neverlose"},
     Default = "None",
     Text = "Custom Shot Sound",
     Tooltip = "Applies a custom shoot sound to all supported weapons",
@@ -1374,7 +1411,7 @@ SoundTab:AddDropdown("KillSound", {
 })
 
 SoundTab:AddDropdown("HitSound", {
-    Values = {"TF2 Hit", "Metal Bat Hit", "Neverlose", "Minecraft Hit 1", "MLG Hit", "Fahhh Hit"},
+    Values = {"TF2 Hit", "Metal Bat Hit", "Neverlose", "Minecraft Hit 1", "Minecraft Hit 2", "MLG Hit", "Fahhh Hit", "Xbox Live Notification", "Rust", "Fatality", "Skeet", "Pick"},
     Default = 1,
     Text = "Hit Sound",
     Tooltip = "Select a custom hit sound",
