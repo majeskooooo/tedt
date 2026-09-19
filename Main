@@ -1537,6 +1537,7 @@ local function getWeapon(ToolName)
 
     Giver.CanTouch = true
     Giver.CFrame = UndergroundCFrame
+    Root.Anchored = true
     Char:PivotTo(UndergroundCFrame + Vector3.new(0, 5, 0))
 
     task.wait(0.25)
@@ -1544,7 +1545,9 @@ local function getWeapon(ToolName)
     task.wait(0.3)
     firetouchinterest(Giver, Root, 1)
 
-    Giver.CFrame = OriginalGiverCFrame
+    if Giver and Giver.Parent then
+        Giver.CFrame = OriginalGiverCFrame
+    end
 
     local function HasWeapon()
         Char = player.Character
@@ -1588,6 +1591,7 @@ local function getWeapon(ToolName)
         })
     end
 
+    Root.Anchored = false
     gettingWeapon = false
 end
 
@@ -1610,11 +1614,23 @@ getgenv().GetWeapons = function()
     end)
 end
 
-player.CharacterAdded:Connect(function()
-    if Settings.AutoGetWeapons then
-        task.wait(1.5)
-        getgenv().GetWeapons()
-    end
+player.CharacterAdded:Connect(function(Character)
+    if not Settings.AutoGetWeapons then return end
+
+    task.spawn(function()
+        Character:WaitForChild("HumanoidRootPart", 5)
+
+        local StartTime = tick()
+        while Character:FindFirstChild("ForceField") and tick() - StartTime < 10 do
+            task.wait(0.25)
+        end
+
+        task.wait(0.5)
+
+        if player.Character == Character then
+            getgenv().GetWeapons()
+        end
+    end)
 end)
 
 -- ============ INFINITE STAMINA ============
