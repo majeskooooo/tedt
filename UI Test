@@ -22,7 +22,7 @@ Library.Scheme.DarkColor = Color3.fromRGB(4, 5, 8)
 local Window = Library:CreateWindow({
     Title = "",
     Footer = "Precision Hub",
-    FooterLeft = "0.6.7",
+    FooterLeft = "0.6.8",
     FooterRight = "Made by 2knw",
     Icon = 74169651953690,
     NotifySide = "Right",
@@ -182,7 +182,7 @@ end
 local UpdatesBox = Tabs.Info:AddLeftGroupbox("Updates", "bell")
 
 UpdatesBox:AddLabel("Prison Life", true)
-UpdatesBox:AddLabel("- Lag when there are many cars in the game Fixed\n- Groupboxes Drag Removed\n- Added Lock Fast Switch Button\n- Added Lock Vehicle Fly Button\n- Added Cycle All Weapons\n- Many UI Changes, Improvements and Fixes\n- Scroll Bug Fixed\n- Added Glow in the UI\n- Vehicle Fly Fixed", true)
+UpdatesBox:AddLabel("- Added", true)
 
 UpdatesBox:AddDivider("Info")
 
@@ -362,6 +362,22 @@ PlayerSettingsBox:AddCheckbox("InfiniteStamina", {
     Default = false,
     Callback = function(v)
         getgenv().SilentAimSettings.InfiniteStamina = v
+    end,
+})
+
+PlayerSettingsBox:AddCheckbox("Invisible", {
+    Text = "Invisible",
+    Default = false,
+    Callback = function(v)
+        getgenv().SetInvisibleEnabled(v)
+    end,
+})
+
+PlayerSettingsBox:AddCheckbox("AntiInvisible", {
+    Text = "Anti-Invisible",
+    Default = false,
+    Callback = function(v)
+        getgenv().SetAntiInvisibleEnabled(v)
     end,
 })
 
@@ -978,6 +994,28 @@ local function updateFastSwitchButtonVisual()
             BackgroundColor3 = "MainColor",
             TextColor3 = "FontColor",
         })
+    end
+end
+
+local FastSwitchLockedPosition = nil
+local FastSwitchPositionConnection = nil
+
+local function setFastSwitchLocked(locked)
+    if locked then
+        FastSwitchLockedPosition = FastSwitchButton.Position
+        if not FastSwitchPositionConnection then
+            FastSwitchPositionConnection = FastSwitchButton:GetPropertyChangedSignal("Position"):Connect(function()
+                if FastSwitchLockedPosition then
+                    FastSwitchButton.Position = FastSwitchLockedPosition
+                end
+            end)
+        end
+    else
+        if FastSwitchPositionConnection then
+            FastSwitchPositionConnection:Disconnect()
+            FastSwitchPositionConnection = nil
+        end
+        FastSwitchLockedPosition = nil
     end
 end
 
