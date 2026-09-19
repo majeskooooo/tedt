@@ -182,7 +182,7 @@ end
 local UpdatesBox = Tabs.Info:AddLeftGroupbox("Updates", "bell")
 
 UpdatesBox:AddLabel("Prison Life", true)
-UpdatesBox:AddLabel("- Added", true)
+UpdatesBox:AddLabel("- Added Invisible\n- Added Anti-invisible\n- Some Bugs Fixed\n- Added new Teleport Criminal Base\n- ", true)
 
 UpdatesBox:AddDivider("Info")
 
