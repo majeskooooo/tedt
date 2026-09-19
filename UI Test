@@ -302,6 +302,18 @@ end
 -- ============ GET WEAPONS ============
 local GetWeaponsBox = Tabs.Teleports:AddLeftGroupbox("Get Weapons", "sword")
 
+GetWeaponsBox:AddDropdown("TeleportMethod", {
+    Values = {"Teleport", "Tween"},
+    Default = "Teleport",
+    Text = "Teleport Method",
+    Tooltip = "Choose how the character moves to the weapon part",
+    Callback = function(Value)
+        getgenv().SilentAimSettings.TeleportMethod = Value
+    end,
+})
+
+GetWeaponsBox:AddDivider()
+
 GetWeaponsBox:AddDropdown("GetWeaponsList", {
     Values = {"MP5", "AK-47", "M4A1", "FAL", "Remington 870", "M700"},
     Multi = true,
@@ -318,20 +330,22 @@ GetWeaponsBox:AddDropdown("GetWeaponsList", {
     end,
 })
 
-GetWeaponsBox:AddCheckbox("AutoGetWeapons", {
-    Text = "Auto get Weapons",
-    Default = false,
-    Callback = function(v)
-        getgenv().SilentAimSettings.AutoGetWeapons = v
-    end,
-})
-
 GetWeaponsBox:AddButton({
     Text = "Get Weapons",
     Func = function()
         if getgenv().GetWeapons then
             getgenv().GetWeapons()
         end
+    end,
+})
+
+GetWeaponsBox:AddDivider()
+
+GetWeaponsBox:AddCheckbox("AutoGetWeapons", {
+    Text = "Auto get Weapons",
+    Default = false,
+    Callback = function(v)
+        getgenv().SilentAimSettings.AutoGetWeapons = v
     end,
 })
 
