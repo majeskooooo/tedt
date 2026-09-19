@@ -271,7 +271,8 @@ local function updateFOVPosition()
     if usingTouch then
         fovCircle.Position = UDim2.new(0.5, 0, 0.5, 0)
     else
-        fovCircle.Position = UDim2.new(0, mouse.X, 0, mouse.Y)
+        local adjustedMousePos = getAdjustedMousePosition()
+        fovCircle.Position = UDim2.new(0, adjustedMousePos.X, 0, adjustedMousePos.Y)
     end
 end
 
@@ -395,7 +396,7 @@ local function getClosestTarget()
                     local screenPos, onScreen = camera:WorldToViewportPoint(part.Position)
                     if onScreen then
                         local screenCenter = Vector2.new(camera.ViewportSize.X/2, camera.ViewportSize.Y/2)
-                        local mousePos = Vector2.new(mouse.X, mouse.Y)
+                        local mousePos = getAdjustedMousePosition()
                         local useMouse = not UserInputService.TouchEnabled
                         local screenDist
                         if useMouse then
@@ -423,7 +424,7 @@ local function getClosestTarget()
     if not localRoot then return nil end
     
     local screenCenter = Vector2.new(camera.ViewportSize.X/2, camera.ViewportSize.Y/2)
-    local mousePos = Vector2.new(mouse.X, mouse.Y)
+    local mousePos = getAdjustedMousePosition()
     local useMouse = not UserInputService.TouchEnabled
     
     local closest = nil
@@ -991,6 +992,7 @@ end
 local InvisibleRealCFrame = nil
 local InvisibleAnimationTrack = nil
 local InvisibleRenderKey = "PrecisionInvisibleRender"
+local InvisibleOriginalTransparency = {}
 
 local function loadInvisibleAnimation(character)
     local humanoid = character:FindFirstChildOfClass("Humanoid")
@@ -1025,6 +1027,15 @@ local function stopInvisible()
         rootPart.CFrame = InvisibleRealCFrame
     end
     InvisibleRealCFrame = nil
+
+    if character then
+        for _, part in ipairs(character:GetDescendants()) do
+            if part:IsA("BasePart") and InvisibleOriginalTransparency[part] ~= nil then
+                part.Transparency = InvisibleOriginalTransparency[part]
+            end
+        end
+    end
+    table.clear(InvisibleOriginalTransparency)
 end
 
 local function startInvisible()
@@ -1036,6 +1047,14 @@ local function startInvisible()
 
     InvisibleAnimationTrack = loadInvisibleAnimation(character)
     InvisibleRealCFrame = nil
+
+    table.clear(InvisibleOriginalTransparency)
+    for _, part in ipairs(character:GetDescendants()) do
+        if part:IsA("BasePart") then
+            InvisibleOriginalTransparency[part] = part.Transparency
+            part.Transparency = 0.5
+        end
+    end
 
     pcall(function()
         RunService:UnbindFromRenderStep(InvisibleRenderKey)
