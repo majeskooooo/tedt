@@ -993,6 +993,7 @@ local InvisibleRealCFrame = nil
 local InvisibleAnimationTrack = nil
 local InvisibleRenderKey = "PrecisionInvisibleRender"
 local InvisibleOriginalTransparency = {}
+local InvisibleOriginalCanCollide = {}
 
 local function loadInvisibleAnimation(character)
     local humanoid = character:FindFirstChildOfClass("Humanoid")
@@ -1025,17 +1026,28 @@ local function stopInvisible()
     local rootPart = character and character:FindFirstChild("HumanoidRootPart")
     if rootPart and InvisibleRealCFrame then
         rootPart.CFrame = InvisibleRealCFrame
+        rootPart.AssemblyLinearVelocity = Vector3.new()
+        rootPart.AssemblyAngularVelocity = Vector3.new()
     end
     InvisibleRealCFrame = nil
 
     if character then
         for _, part in ipairs(character:GetDescendants()) do
-            if part:IsA("BasePart") and InvisibleOriginalTransparency[part] ~= nil then
-                part.Transparency = InvisibleOriginalTransparency[part]
+            if part:IsA("BasePart") and part ~= rootPart then
+                if InvisibleOriginalTransparency[part] ~= nil then
+                    part.Transparency = InvisibleOriginalTransparency[part]
+                end
+                if InvisibleOriginalCanCollide[part] ~= nil then
+                    part.CanCollide = InvisibleOriginalCanCollide[part]
+                end
             end
+        end
+        if rootPart then
+            rootPart.Transparency = 1
         end
     end
     table.clear(InvisibleOriginalTransparency)
+    table.clear(InvisibleOriginalCanCollide)
 end
 
 local function startInvisible()
@@ -1049,12 +1061,16 @@ local function startInvisible()
     InvisibleRealCFrame = nil
 
     table.clear(InvisibleOriginalTransparency)
+    table.clear(InvisibleOriginalCanCollide)
     for _, part in ipairs(character:GetDescendants()) do
-        if part:IsA("BasePart") then
+        if part:IsA("BasePart") and part ~= rootPart then
             InvisibleOriginalTransparency[part] = part.Transparency
+            InvisibleOriginalCanCollide[part] = part.CanCollide
             part.Transparency = 0.5
+            part.CanCollide = false
         end
     end
+    rootPart.Transparency = 1
 
     pcall(function()
         RunService:UnbindFromRenderStep(InvisibleRenderKey)
@@ -1081,6 +1097,8 @@ RunService.Heartbeat:Connect(function()
     local dropOffset = humanoid.HipHeight + (rootPart.Size.Y / 2) - 1
     InvisibleRealCFrame = rootPart.CFrame
     rootPart.CFrame = (rootPart.CFrame - Vector3.new(0, dropOffset, 0)) * CFrame.Angles(math.rad(isR15 and 180 or 90), 0, 0)
+    rootPart.AssemblyLinearVelocity = Vector3.new()
+    rootPart.AssemblyAngularVelocity = Vector3.new()
     if InvisibleAnimationTrack then
         InvisibleAnimationTrack:AdjustWeight(100)
     end
