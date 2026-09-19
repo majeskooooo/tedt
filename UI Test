@@ -182,7 +182,7 @@ end
 local UpdatesBox = Tabs.Info:AddLeftGroupbox("Updates", "bell")
 
 UpdatesBox:AddLabel("Prison Life", true)
-UpdatesBox:AddLabel("- Added Invisible\n- Added Anti-invisible\n- Some Bugs Fixed\n- Added new Teleport Criminal Base\n- ", true)
+UpdatesBox:AddLabel("- Added Invisible\n- Added Anti-invisible\n- Some Bugs Fixed\n- Added new Teleport Criminal Base\n- Added new Teleport Open Gate\n- Added new Teleport Frontwall\n- Added new Teleport Frontwall 2", true)
 
 UpdatesBox:AddDivider("Info")
 
@@ -1711,9 +1711,13 @@ local teleports = {
     {"Guardtower 2", Vector3.new(840, 122, 2067)},
     {"Police Room", Vector3.new(850, 100, 2274)},
     {"Police Room 2", Vector3.new(793, 101, 2246)},
+    {"Frontwall", Vector3.new(510, 122, 2328)},
+    {"Frontwall 2", Vector3.new(516, 122, 2065)},
     {"Armory", Vector3.new(804, 108, 2257)},
+    {"Open Gate", Vector3.new(515, 102, 2263)},
     {"Containers", Vector3.new(254, 73, 2359)},
     {"Sniper Building", Vector3.new(-354, 114, 1991)},
+    {"Criminal Base", Vector3.new(-984, 96, 2079)},
 }
 
 for _, tp in ipairs(teleports) do
