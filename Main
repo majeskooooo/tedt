@@ -1488,69 +1488,124 @@ Players.PlayerRemoving:Connect(function(plr)
     end
 end)
 
--- ============ GET WEAPONS ============
 local gettingWeapon = false
+local OriginalGetWeaponsPosition = nil
 
-local function getWeapon(toolName)
+local function getWeapon(ToolName)
     if gettingWeapon then return end
     gettingWeapon = true
 
-    local char = player.Character
-    local root = char and char:FindFirstChild("HumanoidRootPart")
+    local Char = player.Character
+    local Root = Char and Char:FindFirstChild("HumanoidRootPart")
 
-    if not (char and root) then
+    if not (Char and Root) then
         gettingWeapon = false
         return
     end
 
-    if char:FindFirstChild("ForceField") then
+    if Char:FindFirstChild("ForceField") then
         gettingWeapon = false
         return
     end
 
-    if player.Backpack:FindFirstChild(toolName) or char:FindFirstChild(toolName) then
+    if player.Backpack:FindFirstChild(ToolName) or Char:FindFirstChild(ToolName) then
         gettingWeapon = false
         return
     end
 
-    local giver
+    local Giver
     for _, v in ipairs(workspace:GetDescendants()) do
-        if v.Name == "TouchGiver" and v:GetAttribute("ToolName") == toolName then
-            giver = v:FindFirstChildWhichIsA("BasePart")
+        if v.Name == "TouchGiver" and v:GetAttribute("ToolName") == ToolName then
+            Giver = v:FindFirstChildWhichIsA("BasePart")
             break
         end
     end
 
-    if not giver then
+    if not Giver then
         gettingWeapon = false
         return
     end
 
-    local originalGiverCFrame = giver.CFrame
-    local oldCharCFrame = root.CFrame
-    local undergroundCFrame = originalGiverCFrame - Vector3.new(0, 15.5, 0)
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "Get Weapons",
+        Text = "Trying to get " .. ToolName .. "...",
+        Duration = 3,
+    })
 
-    giver.CanTouch = true
-    giver.CFrame = undergroundCFrame
-    char:PivotTo(undergroundCFrame + Vector3.new(0, 5, 0))
+    local OriginalGiverCFrame = Giver.CFrame
+    local UndergroundCFrame = OriginalGiverCFrame - Vector3.new(0, 15.5, 0)
+
+    Giver.CanTouch = true
+    Giver.CFrame = UndergroundCFrame
+    Char:PivotTo(UndergroundCFrame + Vector3.new(0, 5, 0))
 
     task.wait(0.25)
-    firetouchinterest(giver, root, 0)
+    firetouchinterest(Giver, Root, 0)
     task.wait(0.3)
-    firetouchinterest(giver, root, 1)
-    task.wait(0.05)
+    firetouchinterest(Giver, Root, 1)
 
-    giver.CFrame = originalGiverCFrame
-    char:PivotTo(oldCharCFrame)
-    task.wait(0.1)
+    Giver.CFrame = OriginalGiverCFrame
+
+    local function HasWeapon()
+        Char = player.Character
+        return player.Backpack:FindFirstChild(ToolName) ~= nil or (Char and Char:FindFirstChild(ToolName) ~= nil)
+    end
+
+    local Obtained = false
+    local Elapsed = 0
+    while Elapsed < 3 do
+        if HasWeapon() then
+            Obtained = true
+            break
+        end
+        task.wait(0.1)
+        Elapsed = Elapsed + 0.1
+    end
+
+    if not Obtained then
+        Elapsed = 0
+        while Elapsed < 2.5 do
+            if HasWeapon() then
+                Obtained = true
+                break
+            end
+            task.wait(0.1)
+            Elapsed = Elapsed + 0.1
+        end
+    end
+
+    if Obtained then
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Get Weapons",
+            Text = "Successfully got " .. ToolName .. "!",
+            Duration = 3,
+        })
+    else
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Get Weapons",
+            Text = "Failed to get " .. ToolName .. ".",
+            Duration = 3,
+        })
+    end
 
     gettingWeapon = false
 end
 
 getgenv().GetWeapons = function()
     task.spawn(function()
-        for _, toolName in ipairs(Settings.GetWeaponsList) do
-            getWeapon(toolName)
+        local Char = player.Character
+        local Root = Char and Char:FindFirstChild("HumanoidRootPart")
+        if Root then
+            OriginalGetWeaponsPosition = Root.CFrame
+        end
+
+        for _, ToolName in ipairs(Settings.GetWeaponsList) do
+            getWeapon(ToolName)
+        end
+
+        Char = player.Character
+        if Char and OriginalGetWeaponsPosition then
+            Char:PivotTo(OriginalGetWeaponsPosition)
         end
     end)
 end
