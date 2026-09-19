@@ -46,6 +46,8 @@ getgenv().SilentAimSettings = {
     CameraFOV = 70,
     NoclipEnabled = false,
     InfiniteJumpEnabled = false,
+    InvisibleEnabled = false,
+    AntiInvisibleEnabled = false,
     TargetOnPlayer = {},
     IgnoreTargets = {},
     AimMode = "FOV",
@@ -982,6 +984,212 @@ end)
 
 getgenv().SetInfiniteJumpEnabled = function(v)
     Settings.InfiniteJumpEnabled = v == true
+end
+
+-- ============ INVISIBLE ============
+-- Method by A2Flacko
+local InvisibleRealCFrame = nil
+local InvisibleAnimationTrack = nil
+local InvisibleRenderKey = "PrecisionInvisibleRender"
+
+local function loadInvisibleAnimation(character)
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if not humanoid then return nil end
+    local animator = humanoid:FindFirstChildOfClass("Animator")
+    if not animator then return nil end
+    local isR15 = humanoid.RigType == Enum.HumanoidRigType.R15
+    local animation = Instance.new("Animation")
+    animation.AnimationId = isR15 and "rbxassetid://18665825805" or "rbxassetid://215384594"
+    local track = animator:LoadAnimation(animation)
+    track.Priority = Enum.AnimationPriority.Action4
+    track:Play(0, 0.001, 0)
+    animation:Destroy()
+    task.delay(0, function()
+        track.TimePosition = isR15 and 1.95 or 0.4
+    end)
+    return track
+end
+
+local function stopInvisible()
+    pcall(function()
+        RunService:UnbindFromRenderStep(InvisibleRenderKey)
+    end)
+    if InvisibleAnimationTrack then
+        InvisibleAnimationTrack:Stop()
+        InvisibleAnimationTrack:Destroy()
+        InvisibleAnimationTrack = nil
+    end
+    local character = player.Character
+    local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+    if rootPart and InvisibleRealCFrame then
+        rootPart.CFrame = InvisibleRealCFrame
+    end
+    InvisibleRealCFrame = nil
+end
+
+local function startInvisible()
+    local character = player.Character
+    if not character then return end
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoid or not rootPart then return end
+
+    InvisibleAnimationTrack = loadInvisibleAnimation(character)
+    InvisibleRealCFrame = nil
+
+    pcall(function()
+        RunService:UnbindFromRenderStep(InvisibleRenderKey)
+    end)
+
+    RunService:BindToRenderStep(InvisibleRenderKey, Enum.RenderPriority.Camera.Value - 1, function()
+        if Settings.InvisibleEnabled and InvisibleRealCFrame and rootPart.Parent then
+            rootPart.CFrame = InvisibleRealCFrame
+            if InvisibleAnimationTrack then
+                InvisibleAnimationTrack:AdjustWeight(0.001)
+            end
+        end
+    end)
+end
+
+RunService.Heartbeat:Connect(function()
+    if not Settings.InvisibleEnabled then return end
+    local character = player.Character
+    local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+    local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+    if not humanoid or not rootPart then return end
+
+    local isR15 = humanoid.RigType == Enum.HumanoidRigType.R15
+    local dropOffset = humanoid.HipHeight + (rootPart.Size.Y / 2) - 1
+    InvisibleRealCFrame = rootPart.CFrame
+    rootPart.CFrame = (rootPart.CFrame - Vector3.new(0, dropOffset, 0)) * CFrame.Angles(math.rad(isR15 and 180 or 90), 0, 0)
+    if InvisibleAnimationTrack then
+        InvisibleAnimationTrack:AdjustWeight(100)
+    end
+end)
+
+player.CharacterAdded:Connect(function(character)
+    if Settings.InvisibleEnabled then
+        task.wait(0.5)
+        startInvisible()
+    end
+end)
+
+getgenv().SetInvisibleEnabled = function(v)
+    Settings.InvisibleEnabled = v == true
+    if Settings.InvisibleEnabled then
+        startInvisible()
+    else
+        stopInvisible()
+    end
+end
+
+local AntiInvisibleThreads = {}
+local AntiInvisibleConnections = {}
+local AntiInvisibleWhitelist = {
+    ["http://www.roblox.com/asset/?id=125750702"] = true,
+    ["http://www.roblox.com/asset/?id=128777973"] = true,
+    ["http://www.roblox.com/asset/?id=128853357"] = true,
+    ["http://www.roblox.com/asset/?id=129423030"] = true,
+    ["http://www.roblox.com/asset/?id=129423131"] = true,
+    ["http://www.roblox.com/asset/?id=129967390"] = true,
+    ["http://www.roblox.com/asset/?id=129967478"] = true,
+    ["http://www.roblox.com/asset/?id=178130996"] = true,
+    ["http://www.roblox.com/asset/?id=180426354"] = true,
+    ["http://www.roblox.com/asset/?id=180435571"] = true,
+    ["http://www.roblox.com/asset/?id=180435792"] = true,
+    ["http://www.roblox.com/asset/?id=180436148"] = true,
+    ["http://www.roblox.com/asset/?id=180436334"] = true,
+    ["http://www.roblox.com/asset/?id=182393478"] = true,
+    ["http://www.roblox.com/asset/?id=182435998"] = true,
+    ["http://www.roblox.com/asset/?id=182436842"] = true,
+    ["http://www.roblox.com/asset/?id=182436935"] = true,
+    ["http://www.roblox.com/asset/?id=182491037"] = true,
+    ["http://www.roblox.com/asset/?id=182491065"] = true,
+    ["http://www.roblox.com/asset/?id=182491248"] = true,
+    ["http://www.roblox.com/asset/?id=182491277"] = true,
+    ["http://www.roblox.com/asset/?id=182491368"] = true,
+    ["http://www.roblox.com/asset/?id=182491423"] = true,
+    ["rbxassetid://279227693"] = true,
+    ["rbxassetid://279229192"] = true,
+    ["rbxassetid://287112271"] = true,
+    ["rbxassetid://388723916"] = true,
+    ["rbxassetid://388726667"] = true,
+    ["rbxassetid://389472570"] = true,
+    ["rbxassetid://405194080"] = true,
+    ["rbxassetid://405212265"] = true,
+    ["rbxassetid://481088553"] = true,
+    ["rbxassetid://481089053"] = true,
+    ["rbxassetid://484200742"] = true,
+    ["rbxassetid://484926359"] = true,
+    ["rbxassetid://83690472549256"] = true,
+    ["rbxassetid://107176344504758"] = true,
+    ["rbxassetid://111090572475133"] = true,
+    ["rbxassetid://113267949064300"] = true,
+    ["rbxassetid://131326339350805"] = true,
+    ["rbxassetid://18665825805"] = true,
+    ["rbxassetid://215384594"] = true,
+}
+
+pcall(function()
+    for _, animation in ipairs(game:GetService("ReplicatedStorage"):GetDescendants()) do
+        if animation:IsA("Animation") then
+            AntiInvisibleWhitelist[animation.AnimationId] = true
+        end
+    end
+end)
+
+local function watchAnimationTrack(track)
+    local animationId = track.Animation and track.Animation.AnimationId
+    if not animationId or AntiInvisibleWhitelist[animationId] then return end
+    if AntiInvisibleThreads[track] then
+        task.cancel(AntiInvisibleThreads[track])
+    end
+    AntiInvisibleThreads[track] = task.spawn(function()
+        repeat
+            track:AdjustWeight(0, 0)
+            task.wait()
+        until not (track.IsPlaying and Settings.AntiInvisibleEnabled)
+        AntiInvisibleThreads[track] = nil
+    end)
+end
+
+local function hookCharacterAnimations(character)
+    local humanoid = character:WaitForChild("Humanoid", 5)
+    if not humanoid then return end
+    local animator = humanoid:WaitForChild("Animator", 5)
+    if not animator then return end
+
+    local connection = animator.AnimationPlayed:Connect(function(track)
+        if Settings.AntiInvisibleEnabled then
+            watchAnimationTrack(track)
+        end
+    end)
+    AntiInvisibleConnections[character] = connection
+
+    for _, track in ipairs(animator:GetPlayingAnimationTracks()) do
+        if Settings.AntiInvisibleEnabled then
+            watchAnimationTrack(track)
+        end
+    end
+end
+
+local function hookPlayerAnimations(plr)
+    if plr == player then return end
+    if plr.Character then
+        task.spawn(hookCharacterAnimations, plr.Character)
+    end
+    plr.CharacterAdded:Connect(function(character)
+        task.spawn(hookCharacterAnimations, character)
+    end)
+end
+
+for _, plr in ipairs(Players:GetPlayers()) do
+    hookPlayerAnimations(plr)
+end
+Players.PlayerAdded:Connect(hookPlayerAnimations)
+
+getgenv().SetAntiInvisibleEnabled = function(v)
+    Settings.AntiInvisibleEnabled = v == true
 end
 
 -- ============ ANTI-TASE ============
