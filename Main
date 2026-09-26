@@ -2586,6 +2586,8 @@ local SkinSettings = {
     Color = Color3.fromRGB(255, 255, 255),
     Transparency = 0,
     Material = Enum.Material.SmoothPlastic,
+    TextureEnabled = false,
+    TextureId = "",
 }
 
 local originalPartProps = {}
@@ -2599,6 +2601,20 @@ local materialMap = {
     Metal = Enum.Material.Metal,
     Marble = Enum.Material.Marble,
     Neon = Enum.Material.Neon,
+}
+
+local TextureMap = {
+    Matrix = "rbxassetid://108962544192848",
+    ["Blue Void"] = "rbxassetid://127882926538331",
+    ["Classic blue White"] = "rbxassetid://80810460581216",
+    ["Green and Black"] = "rbxassetid://124882447520456",
+    White = "rbxassetid://121082905685777",
+    ["Blue sky's with White Guns"] = "rbxassetid://84745365197133",
+    ["Water Skin"] = "rbxassetid://119639132290940",
+    Aurora = "rbxassetid://124100490232201",
+    ["Epic White"] = "rbxassetid://100880863815885",
+    ["Pink White"] = "rbxassetid://95856803518597",
+    ["Blue Stars"] = "rbxassetid://118405531972534",
 }
 
 local function storeOriginalProps(tool)
@@ -2626,18 +2642,21 @@ local function applyWeaponSkin(tool)
                 part.Color = SkinSettings.Color
                 part.Material = SkinSettings.Material
                 part.Transparency = SkinSettings.Transparency
-
-                if part:IsA("MeshPart") then
-                    part.TextureID = ""
-                end
             else
                 local orig = originalPartProps[part]
                 if orig then
                     part.Color = orig.Color
                     part.Material = orig.Material
                     part.Transparency = orig.Transparency
+                end
+            end
 
-                    if part:IsA("MeshPart") and orig.TextureID then
+            if part:IsA("MeshPart") then
+                if SkinSettings.TextureEnabled and SkinSettings.TextureId ~= "" then
+                    part.TextureID = SkinSettings.TextureId
+                else
+                    local orig = originalPartProps[part]
+                    if orig and orig.TextureID then
                         part.TextureID = orig.TextureID
                     end
                 end
@@ -2703,6 +2722,18 @@ end
 getgenv().SetWeaponMaterial = function(v)
     SkinSettings.Material = materialMap[v] or Enum.Material.SmoothPlastic
     if SkinSettings.Enabled then
+        applyWeaponSkinToAllTools()
+    end
+end
+
+getgenv().SetWeaponTextureEnabled = function(v)
+    SkinSettings.TextureEnabled = v == true
+    applyWeaponSkinToAllTools()
+end
+
+getgenv().SetWeaponTexture = function(v)
+    SkinSettings.TextureId = TextureMap[v] or ""
+    if SkinSettings.TextureEnabled then
         applyWeaponSkinToAllTools()
     end
 end
