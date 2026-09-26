@@ -395,6 +395,31 @@ PlayerSettingsBox:AddCheckbox("AntiInvisible", {
     end,
 })
 
+PlayerSettingsBox:AddCheckbox("Korblox", {
+    Text = "Korblox",
+    Default = false,
+    Callback = function(v)
+        getgenv().SetKorbloxEnabled(v)
+    end,
+})
+
+PlayerSettingsBox:AddCheckbox("Headless", {
+    Text = "Headless",
+    Default = false,
+    Callback = function(v)
+        getgenv().SetHeadlessEnabled(v)
+    end,
+})
+
+PlayerSettingsBox:AddCheckbox("AntiSit", {
+    Text = "Anti Sit",
+    Tooltip = "Prevents you from sitting on any seat, except the driver seat of a vehicle",
+    Default = false,
+    Callback = function(v)
+        getgenv().SetAntiSitEnabled(v)
+    end,
+})
+
 PlayerSettingsBox:AddCheckbox("CameraFOVEnabled", {
     Text = "Enable Camera FOV",
     Tooltip = "Enables custom camera FOV, otherwise uses the game's default",
@@ -1431,7 +1456,27 @@ SoundTab:AddCheckbox("CustomHitSound", {
 SoundTab:AddDivider()
 
 SoundTab:AddDropdown("KillSound", {
-    Values = {"Fahhh", "Epic Kill 1", "Epic Kill 2", "Laugh", "Cat Laughing Meme", "Goofy Laugh", "PVZ Laugh"},
+    Values = {
+        "Fahhh",
+        "Epic Kill 1",
+        "Epic Kill 2",
+        "Laugh",
+        "Cat Laughing Meme",
+        "Goofy Laugh",
+        "PVZ Laugh",
+        "CoD Kaboom",
+        "You are a Idiot",
+        "Creepy Bell",
+        "Vine Boom",
+        "RDR2 Low Honor",
+        "Get Out",
+        "Diahrrea Sound",
+        "Goku Prowler",
+        "iPhone Ding",
+        "Bark Fart",
+        "Enrique",
+        "Fatality 2",
+    },
     Default = 1,
     Text = "Kill Sound",
     Tooltip = "Select a custom kill sound",
@@ -1441,7 +1486,21 @@ SoundTab:AddDropdown("KillSound", {
 })
 
 SoundTab:AddDropdown("HitSound", {
-    Values = {"TF2 Hit", "Metal Bat Hit", "Neverlose", "Minecraft Hit 1", "Minecraft Hit 2", "MLG Hit", "Fahhh Hit", "Xbox Live Notification", "Rust", "Fatality", "Skeet", "Pick"},
+    Values = {
+        "TF2 Hit",
+        "Metal Bat Hit",
+        "Neverlose",
+        "Minecraft Hit 1",
+        "Minecraft Hit 2",
+        "MLG Hit",
+        "Fahhh Hit",
+        "Xbox Live Notification",
+        "Rust",
+        "Fatality",
+        "Skeet",
+        "Pick",
+        "Creepy Bell",
+    },
     Default = 1,
     Text = "Hit Sound",
     Tooltip = "Select a custom hit sound",
