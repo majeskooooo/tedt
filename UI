@@ -22,7 +22,7 @@ Library.Scheme.DarkColor = Color3.fromRGB(4, 5, 8)
 local Window = Library:CreateWindow({
     Title = "",
     Footer = "Precision Hub",
-    FooterLeft = "0.6.7",
+    FooterLeft = "0.6.8",
     FooterRight = "Made by 2knw",
     Icon = 74169651953690,
     NotifySide = "Right",
@@ -182,7 +182,38 @@ end
 local UpdatesBox = Tabs.Info:AddLeftGroupbox("Updates", "bell")
 
 UpdatesBox:AddLabel("Prison Life", true)
-UpdatesBox:AddLabel("- Added Minecraft Hit 2 Hitsound\n- Added Xbox Live Notification Hitsound\n- Added Rust Hitsound\n- Added Fatality Hitsound\n- Added Skeet Hitsound\n- Added Pick Hitsound\n- New Default Theme\n- Hitsound Fixed\n- Now u Need to Hold the Fast Switch Button to Enable the Fast Switch\n- Fixed UI not Showing\n- Added Preserve Sounds", true)
+UpdatesBox:AddLabel(
+    "- Added Invisible\n" ..
+    "  Credits to A2Flacko\n" ..
+    "- Added Anti-invisible\n" ..
+    "  Credits to A2Flacko\n" ..
+    "- Some Bugs Fixed\n" ..
+    "- Added new Teleport Criminal Base\n" ..
+    "- Added new Teleport Frontwall\n" ..
+    "- Improved Get Weapons System\n" ..
+    "- Added Anti Sit\n" ..
+    "  to prevent kick exploits\n" ..
+    "- Added Korblox\n" ..
+    "  Visual\n" ..
+    "- Added Headless\n" ..
+    "  Visual\n" ..
+    "- Added CoD Kaboom Hitsound\n" ..
+    "- Added Creepy Bell Hitsound\n" ..
+    "- Added You are a Idiot Killsound\n" ..
+    "- Added Creepy Bell Killsound\n" ..
+    "- Added Vine Boom Killsound\n" ..
+    "- Added RDR2 Low Honor Killsound\n" ..
+    "- Added Get Out Killsound\n" ..
+    "- Added Diahrrea Sound Killsound\n" ..
+    "- Added Goku Prowler Killsound\n" ..
+    "- Added iPhone Ding Killsound\n" ..
+    "- Added Bark Fart Killsound\n" ..
+    "- Added Enrique Killsound\n" ..
+    "- Added Fatality 2 Killsound\n" ..
+    "- Added Weapon Textures\n" ..
+    "  Credits to OnlyAdrian for sending every Texture",
+    true
+)
 
 UpdatesBox:AddDivider("Info")
 
@@ -318,20 +349,22 @@ GetWeaponsBox:AddDropdown("GetWeaponsList", {
     end,
 })
 
-GetWeaponsBox:AddCheckbox("AutoGetWeapons", {
-    Text = "Auto get Weapons",
-    Default = false,
-    Callback = function(v)
-        getgenv().SilentAimSettings.AutoGetWeapons = v
-    end,
-})
-
 GetWeaponsBox:AddButton({
     Text = "Get Weapons",
     Func = function()
         if getgenv().GetWeapons then
             getgenv().GetWeapons()
         end
+    end,
+})
+
+GetWeaponsBox:AddDivider()
+
+GetWeaponsBox:AddCheckbox("AutoGetWeapons", {
+    Text = "Auto get Weapons",
+    Default = false,
+    Callback = function(v)
+        getgenv().SilentAimSettings.AutoGetWeapons = v
     end,
 })
 
@@ -362,6 +395,47 @@ PlayerSettingsBox:AddCheckbox("InfiniteStamina", {
     Default = false,
     Callback = function(v)
         getgenv().SilentAimSettings.InfiniteStamina = v
+    end,
+})
+
+PlayerSettingsBox:AddCheckbox("Invisible", {
+    Text = "Invisible",
+    Default = false,
+    Callback = function(v)
+        getgenv().SetInvisibleEnabled(v)
+    end,
+})
+
+PlayerSettingsBox:AddCheckbox("AntiInvisible", {
+    Text = "Anti-Invisible",
+    Default = false,
+    Callback = function(v)
+        getgenv().SetAntiInvisibleEnabled(v)
+    end,
+})
+
+PlayerSettingsBox:AddCheckbox("Korblox", {
+    Text = "Korblox",
+    Default = false,
+    Callback = function(v)
+        getgenv().SetKorbloxEnabled(v)
+    end,
+})
+
+PlayerSettingsBox:AddCheckbox("Headless", {
+    Text = "Headless",
+    Default = false,
+    Callback = function(v)
+        getgenv().SetHeadlessEnabled(v)
+    end,
+})
+
+PlayerSettingsBox:AddCheckbox("AntiSit", {
+    Text = "Anti Sit",
+    Tooltip = "Prevents you from sitting on any seat, except the driver seat of a vehicle",
+    Default = false,
+    Callback = function(v)
+        getgenv().SetAntiSitEnabled(v)
     end,
 })
 
@@ -1343,6 +1417,14 @@ PaintTab:AddCheckbox("EnableWeaponColor", {
     end,
 })
 
+PaintTab:AddCheckbox("EnableWeaponTexture", {
+    Text = "Enable Weapon Texture",
+    Default = false,
+    Callback = function(v)
+        getgenv().SetWeaponTextureEnabled(v)
+    end,
+})
+
 PaintTab:AddDivider()
 
 PaintTab:AddSlider("WeaponTransparency", {
@@ -1365,6 +1447,30 @@ PaintTab:AddDropdown("WeaponMaterial", {
         getgenv().SetWeaponMaterial(Value)
     end,
 })
+
+PaintTab:AddDropdown("WeaponTexture", {
+    Values = {
+        "Matrix",
+        "Blue Void",
+        "Classic blue White",
+        "Green and Black",
+        "White",
+        "Blue sky's with White Guns",
+        "Water Skin",
+        "Aurora",
+        "Epic White",
+        "Pink White",
+        "Blue Stars",
+    },
+    Default = "Matrix",
+    Text = "Weapon Texture",
+    Tooltip = "Sets the texture of your weapon",
+    Callback = function(Value)
+        getgenv().SetWeaponTexture(Value)
+    end,
+})
+
+PaintTab:AddLabel("Credits to OnlyAdrian", true)
 
 
 local SoundTab = WeaponModsTabbox:AddTab(nil, "volume-2")
@@ -1401,7 +1507,27 @@ SoundTab:AddCheckbox("CustomHitSound", {
 SoundTab:AddDivider()
 
 SoundTab:AddDropdown("KillSound", {
-    Values = {"Fahhh", "Epic Kill 1", "Epic Kill 2", "Laugh", "Cat Laughing Meme", "Goofy Laugh", "PVZ Laugh"},
+    Values = {
+        "Fahhh",
+        "Epic Kill 1",
+        "Epic Kill 2",
+        "Laugh",
+        "Cat Laughing Meme",
+        "Goofy Laugh",
+        "PVZ Laugh",
+        "CoD Kaboom",
+        "You are a Idiot",
+        "Creepy Bell",
+        "Vine Boom",
+        "RDR2 Low Honor",
+        "Get Out",
+        "Diahrrea Sound",
+        "Goku Prowler",
+        "iPhone Ding",
+        "Bark Fart",
+        "Enrique",
+        "Fatality 2",
+    },
     Default = 1,
     Text = "Kill Sound",
     Tooltip = "Select a custom kill sound",
@@ -1411,7 +1537,21 @@ SoundTab:AddDropdown("KillSound", {
 })
 
 SoundTab:AddDropdown("HitSound", {
-    Values = {"TF2 Hit", "Metal Bat Hit", "Neverlose", "Minecraft Hit 1", "Minecraft Hit 2", "MLG Hit", "Fahhh Hit", "Xbox Live Notification", "Rust", "Fatality", "Skeet", "Pick"},
+    Values = {
+        "TF2 Hit",
+        "Metal Bat Hit",
+        "Neverlose",
+        "Minecraft Hit 1",
+        "Minecraft Hit 2",
+        "MLG Hit",
+        "Fahhh Hit",
+        "Xbox Live Notification",
+        "Rust",
+        "Fatality",
+        "Skeet",
+        "Pick",
+        "Creepy Bell",
+    },
     Default = 1,
     Text = "Hit Sound",
     Tooltip = "Select a custom hit sound",
@@ -1695,9 +1835,11 @@ local teleports = {
     {"Guardtower 2", Vector3.new(840, 122, 2067)},
     {"Police Room", Vector3.new(850, 100, 2274)},
     {"Police Room 2", Vector3.new(793, 101, 2246)},
+    {"Frontwall", Vector3.new(510, 122, 2328)},
     {"Armory", Vector3.new(804, 108, 2257)},
     {"Containers", Vector3.new(254, 73, 2359)},
     {"Sniper Building", Vector3.new(-354, 114, 1991)},
+    {"Criminal Base", Vector3.new(-984, 96, 2079)},
 }
 
 for _, tp in ipairs(teleports) do
