@@ -182,7 +182,38 @@ end
 local UpdatesBox = Tabs.Info:AddLeftGroupbox("Updates", "bell")
 
 UpdatesBox:AddLabel("Prison Life", true)
-UpdatesBox:AddLabel("- Added Invisible\n- Added Anti-invisible\n- Some Bugs Fixed\n- Added new Teleport Criminal Base\n- Added new Teleport Open Gate\n- Added new Teleport Frontwall\n- Added new Teleport Frontwall 2\n- Improved Get Weapons System", true)
+UpdatesBox:AddLabel(
+    "- Added Invisible\n" ..
+    "  Credits to A2Flacko\n" ..
+    "- Added Anti-invisible\n" ..
+    "  Credits to A2Flacko\n" ..
+    "- Some Bugs Fixed\n" ..
+    "- Added new Teleport Criminal Base\n" ..
+    "- Added new Teleport Frontwall\n" ..
+    "- Improved Get Weapons System\n" ..
+    "- Added Anti Sit\n" ..
+    "  to prevent kick exploits\n" ..
+    "- Added Korblox\n" ..
+    "  Visual\n" ..
+    "- Added Headless\n" ..
+    "  Visual\n" ..
+    "- Added CoD Kaboom Hitsound\n" ..
+    "- Added Creepy Bell Hitsound\n" ..
+    "- Added You are a Idiot Killsound\n" ..
+    "- Added Creepy Bell Killsound\n" ..
+    "- Added Vine Boom Killsound\n" ..
+    "- Added RDR2 Low Honor Killsound\n" ..
+    "- Added Get Out Killsound\n" ..
+    "- Added Diahrrea Sound Killsound\n" ..
+    "- Added Goku Prowler Killsound\n" ..
+    "- Added iPhone Ding Killsound\n" ..
+    "- Added Bark Fart Killsound\n" ..
+    "- Added Enrique Killsound\n" ..
+    "- Added Fatality 2 Killsound\n" ..
+    "- Added Weapon Textures\n" ..
+    "  Credits to OnlyAdrian for sending every Texture",
+    true
+)
 
 UpdatesBox:AddDivider("Info")
 
@@ -301,18 +332,6 @@ end
 
 -- ============ GET WEAPONS ============
 local GetWeaponsBox = Tabs.Teleports:AddLeftGroupbox("Get Weapons", "sword")
-
-GetWeaponsBox:AddDropdown("TeleportMethod", {
-    Values = {"Teleport", "Tween"},
-    Default = "Teleport",
-    Text = "Teleport Method",
-    Tooltip = "Choose how the character moves to the weapon part",
-    Callback = function(Value)
-        getgenv().SilentAimSettings.TeleportMethod = Value
-    end,
-})
-
-GetWeaponsBox:AddDivider()
 
 GetWeaponsBox:AddDropdown("GetWeaponsList", {
     Values = {"MP5", "AK-47", "M4A1", "FAL", "Remington 870", "M700"},
@@ -1398,6 +1417,14 @@ PaintTab:AddCheckbox("EnableWeaponColor", {
     end,
 })
 
+PaintTab:AddCheckbox("EnableWeaponTexture", {
+    Text = "Enable Weapon Texture",
+    Default = false,
+    Callback = function(v)
+        getgenv().SetWeaponTextureEnabled(v)
+    end,
+})
+
 PaintTab:AddDivider()
 
 PaintTab:AddSlider("WeaponTransparency", {
@@ -1420,6 +1447,30 @@ PaintTab:AddDropdown("WeaponMaterial", {
         getgenv().SetWeaponMaterial(Value)
     end,
 })
+
+PaintTab:AddDropdown("WeaponTexture", {
+    Values = {
+        "Matrix",
+        "Blue Void",
+        "Classic blue White",
+        "Green and Black",
+        "White",
+        "Blue sky's with White Guns",
+        "Water Skin",
+        "Aurora",
+        "Epic White",
+        "Pink White",
+        "Blue Stars",
+    },
+    Default = "Matrix",
+    Text = "Weapon Texture",
+    Tooltip = "Sets the texture of your weapon",
+    Callback = function(Value)
+        getgenv().SetWeaponTexture(Value)
+    end,
+})
+
+PaintTab:AddLabel("Credits to OnlyAdrian", true)
 
 
 local SoundTab = WeaponModsTabbox:AddTab(nil, "volume-2")
@@ -1785,9 +1836,7 @@ local teleports = {
     {"Police Room", Vector3.new(850, 100, 2274)},
     {"Police Room 2", Vector3.new(793, 101, 2246)},
     {"Frontwall", Vector3.new(510, 122, 2328)},
-    {"Frontwall 2", Vector3.new(516, 122, 2065)},
     {"Armory", Vector3.new(804, 108, 2257)},
-    {"Open Gate", Vector3.new(515, 102, 2263)},
     {"Containers", Vector3.new(254, 73, 2359)},
     {"Sniper Building", Vector3.new(-354, 114, 1991)},
     {"Criminal Base", Vector3.new(-984, 96, 2079)},
