@@ -73,6 +73,7 @@ getgenv().SilentAimSettings = {
     GunSwitchDelay = 0.01,
     GunSwitchEnabled = false,
     GunSwitchCycleAll = false,
+    AntiSitEnabled = false,
     ESPTextColor = Color3.fromRGB(255, 255, 255),
     ESPTargetTextColor = Color3.fromRGB(255, 182, 255),
     ESPTargetNameEnabled = false,
@@ -1227,6 +1228,107 @@ Players.PlayerAdded:Connect(hookPlayerAnimations)
 
 getgenv().SetAntiInvisibleEnabled = function(v)
     Settings.AntiInvisibleEnabled = v == true
+end
+
+local HeadlessMeshId = "rbxassetid://1095708"
+local KorbloxMeshId = "rbxassetid://101851696"
+local KorbloxTextureId = "rbxassetid://101851254"
+
+local function applyHeadless(character)
+    local head = character:FindFirstChild("Head")
+    if not head then return end
+
+    head.Transparency = 1
+    head.CanCollide = false
+
+    local face = head:FindFirstChildOfClass("Decal")
+    if face then face:Destroy() end
+
+    for _, v in ipairs(head:GetChildren()) do
+        if v:IsA("SpecialMesh") or v:IsA("CharacterMesh") then
+            v:Destroy()
+        end
+    end
+
+    local mesh = Instance.new("SpecialMesh")
+    mesh.MeshType = Enum.MeshType.FileMesh
+    mesh.MeshId = HeadlessMeshId
+    mesh.Scale = Vector3.new(0.001, 0.001, 0.001)
+    mesh.Parent = head
+end
+
+local function applyKorblox(character)
+    local rightLeg = character:FindFirstChild("Right Leg")
+    if not rightLeg then return end
+
+    for _, v in ipairs(rightLeg:GetChildren()) do
+        if v:IsA("SpecialMesh") or v:IsA("CharacterMesh") then
+            v:Destroy()
+        end
+    end
+
+    local mesh = Instance.new("SpecialMesh")
+    mesh.MeshType = Enum.MeshType.FileMesh
+    mesh.MeshId = KorbloxMeshId
+    mesh.TextureId = KorbloxTextureId
+    mesh.Scale = Vector3.new(1, 1, 1)
+    mesh.Parent = rightLeg
+end
+
+getgenv().SetHeadlessEnabled = function(v)
+    Settings.HeadlessEnabled = v == true
+    if Settings.HeadlessEnabled and player.Character then
+        applyHeadless(player.Character)
+    end
+end
+
+getgenv().SetKorbloxEnabled = function(v)
+    Settings.KorbloxEnabled = v == true
+    if Settings.KorbloxEnabled and player.Character then
+        applyKorblox(player.Character)
+    end
+end
+
+player.CharacterAdded:Connect(function(character)
+    task.wait(1)
+    if Settings.HeadlessEnabled then
+        applyHeadless(character)
+    end
+    if Settings.KorbloxEnabled then
+        applyKorblox(character)
+    end
+end)
+
+-- ============ ANTI SIT ============
+local antiSitConnections = {}
+
+local function disconnectAntiSit()
+    for _, connection in antiSitConnections do
+        connection:Disconnect()
+    end
+    antiSitConnections = {}
+end
+
+local function hookAntiSit(char)
+    disconnectAntiSit()
+
+    local humanoid = char:WaitForChild("Humanoid", 5)
+    if not humanoid then return end
+
+    table.insert(antiSitConnections, humanoid.Seated:Connect(function(active, seatPart)
+        if not Settings.AntiSitEnabled then return end
+        if active and seatPart and not seatPart:IsA("VehicleSeat") then
+            humanoid.Jump = true
+            humanoid.Sit = false
+        end
+    end))
+end
+
+hookAntiSit(player.Character)
+player.CharacterAdded:Connect(hookAntiSit)
+
+getgenv().SetAntiSitEnabled = function(v)
+    Settings.AntiSitEnabled = v == true
 end
 
 -- ============ ANTI-TASE ============
@@ -2957,6 +3059,7 @@ local HitSounds = {
     ["Fatality"] = 6534947869,
     ["Skeet"] = 5633695679,
     ["Pick"] = 1347140027,
+    ["Creepy Bell"] = 98025615996882,
 }
 
 local KillSounds = {
@@ -2967,6 +3070,18 @@ local KillSounds = {
     ["Cat Laughing Meme"] = 133312610824902,
     ["Goofy Laugh"] = 128132519337195,
     ["PVZ Laugh"] = 137716148492089,
+    ["CoD Kaboom"] = 7358219350,
+    ["You are a Idiot"] = 3200130016,
+    ["Creepy Bell"] = 98025615996882,
+    ["Vine Boom"] = 140367458608473,
+    ["RDR2 Low Honor"] = 126973996863873,
+    ["Get Out"] = 138093000712523,
+    ["Diahrrea Sound"] = 130990339683290,
+    ["Goku Prowler"] = 131169447699141,
+    ["iPhone Ding"] = 120612883125769,
+    ["Bark Fart"] = 124264573696620,
+    ["Enrique"] = 129084748747846,
+    ["Fatality 2"] = 97439296876895,
 }
 
 local CustomHitSoundEnabled = false
